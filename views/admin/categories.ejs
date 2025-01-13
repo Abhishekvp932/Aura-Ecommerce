@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html :class="{ 'theme-dark': dark }" x-data="data()" lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aura-Men</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/tailwind.output.css" />
+    <!-- <script
+      src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"
+      defer
+    ></script> -->
+    <script src="/js/init-alpine.js"></script>
+
+    <style>
+        /* Main layout styles */
+.container {
+    padding: 1.5rem;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Table container styles */
+.table-wrapper {
+    background-color: #1E2029;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 1.5rem;
+}
+
+/* Header section styles */
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.page-title {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+.add-product-button {
+    background-color: #90EE90;
+    color: #000;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-product-button:hover {
+    background-color: #7DCD7D;
+}
+
+/* Table styles */
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+}
+
+.product-table th {
+    background-color: #1E2029;
+    color: #6B7280;
+    font-weight: 500;
+    text-align: left;
+    padding: 1rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #2D3748;
+}
+
+.product-table td {
+    padding: 1rem;
+    color: #E5E7EB;
+    border-bottom: 1px solid #2D3748;
+}
+
+/* Product image styles */
+.product-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+/* Color dots styles */
+.color-dots {
+    display: flex;
+    gap: 8px;
+}
+
+.color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.color-dot.red {
+    background-color: #EF4444;
+}
+
+.color-dot.black {
+    background-color: #000000;
+}
+
+.color-dot.blue {
+    background-color: #3B82F6;
+}
+
+/* Action buttons styles */
+.actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.action-button {
+    background: none;
+    border: none;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 0.25rem;
+    transition: color 0.2s;
+}
+
+.action-button:hover {
+    color: #E5E7EB;
+}
+
+/* Pagination styles */
+.pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #1E2029;
+    border-top: 1px solid #2D3748;
+}
+
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.page-button {
+    padding: 0.5rem 0.75rem;
+    background: none;
+    border: none;
+    color: #6B7280;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.page-button:hover {
+    background-color: #374151;
+    color: #E5E7EB;
+}
+
+.page-button.active {
+    background-color: #8B5CF6;
+    color: #ffffff;
+}
+
+.showing-text {
+    color: #6B7280;
+    font-size: 0.875rem;
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+    .product-table {
+        font-size: 0.875rem;
+    }
+    
+    .product-table th,
+    .product-table td {
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .table-wrapper {
+        overflow-x: auto;
+    }
+    
+    .header-section {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .product-image {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .pagination-wrapper {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
+/* Scrollbar styles */
+.table-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: #1E2029;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #4B5563;
+}   
+    </style>
+  </head>
+  <body>
+    <div
+      class="flex h-screen bg-gray-50 dark:bg-gray-900"
+      :class="{ 'overflow-hidden': isSideMenuOpen}"
+    >
+      <!-- Desktop sidebar -->
+      <%-include('../partials/admin/sideNav.ejs')%>
+      
+      <div class="flex flex-col flex-1">
+        <%-include('../partials/admin/adminHeader.ejs')%>
+        
+        <!-- Main content -->
+        
+        <main class="h-full overflow-y-auto">
+          <div class="container px-6 mx-auto grid">
+            <!-- Header -->
+             <form action="">
+            <div class="flex justify-between items-center my-6">
+              <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-200">
+                Categories
+              </h2>
+              
+              <a href="/admin/addCategory"class="px-4 py-2 text-sm font-medium leading-5 text-green-600 transition-colors duration-150 bg-green-400 border border-transparent rounded-lg active:bg-green-500 hover:bg-green-500 focus:outline-none">
+                ADD CATEGORY +
+              </a>
+            
+            </div>
+        </form>
+
+            <!-- Product Table -->
+            <div class="w-full overflow-hidden rounded-lg shadow-xs">
+              <div class="w-full overflow-x-auto">
+                <table class="w-full whitespace-no-wrap">
+                  <thead>
+                    <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
+                      <th class="px-4 py-3">NO</th>
+                      <th class="px-4 py-3">CATEGORY</th>
+                      <th class="px-4 py-3">CATEGORY DISCRIPTION</th>
+                      <th class="px-4 py-3">LAST UPDATED</th>
+                      <th class="px-4 py-3">LIST/UNLIST</th>
+                      <th class="px-4 py-3">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
+                    <% category.forEach((categorie, index) => { %>
+                      <tr class="text-gray-700 dark:text-gray-400">
+                          <td class="px-4 py-3"><%= index +1 %></td>
+                          <td class="px-4 py-3"><%= categorie.name %></td>
+                          <td class="px-4 py-3"><%= categorie.description %></td>
+                          <td><%= new Date(categorie.createdAt).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        }) %></td>  
+                        <td class="px-4 py-3">
+                          <% if(categorie.isListed === true) { %>
+                              <button class="btn btn-danger" style="width: 80px;">
+                                  <a href="/admin/unList?id=<%=categorie._id %>" class="text-white" style="text-decoration: none;">List</a>
+                              </button>
+                          <% } else { %>
+                              <button class="btn btn-success" style="width: 80px;">
+                                  <a href="/admin/list?id=<%=categorie._id %>" class="text-white" style="text-decoration: none;">Unlis</a>
+                              </button>
+                          <% } %>
+  
+                        </td>          
+                      <td class="px-4 py-3">
+                        
+                          <div class="flex items-center space-x-4">
+                            <a href="/admin/editeCategory/<%=categorie._id%>" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-200">
+                              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                              </svg>
+                            </a>
+                            <a href="" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-200">
+                              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                              </svg>
+                            </a>
+                          </div>
+                      
+                      </td>
+                     
+                    </tr>
+                    <% }) %>
+                    <!-- More rows with same structure -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div class="grid px-4 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase border-t dark:border-gray-700 bg-gray-50 sm:grid-cols-9 dark:text-gray-400 dark:bg-gray-800">
+            
+                <span class="col-span-2"></span>
+                <span class="flex col-span-4 mt-2 sm:mt-auto sm:justify-end">
+                  <nav aria-label="Table navigation">
+                      <ul class="pagination inline-flex items-center">
+                        <% for (let i = 1; i <= totalPage; i++) { %>
+                          <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                          </li>
+                        <% } %>
+                      </ul>
+                  </nav>
+                </span>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

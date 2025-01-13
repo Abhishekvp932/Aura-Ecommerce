@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aura-Men</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+    <link rel="stylesheet" href="/css/tailwind.output.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+        }
+
+        .content-main {
+            padding: 20px;
+            width: 100%;
+            background-color: #f9f9f9;
+        }
+
+        .content-header {
+            margin-bottom: 20px;
+        }
+
+        .content-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            margin-bottom: 16px;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .col-lg-4 {
+            flex: 0 0 calc(33.333% - 16px);
+        }
+
+        .col-lg-6 {
+            flex: 0 0 calc(50% - 16px);
+        }
+
+        .publish-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .publish-btn:hover {
+            background-color: #45a049;
+        }
+
+        .sizes-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .size-input {
+            flex: 1 1 calc(20% - 10px);
+        }
+
+        .thumbnail {
+            margin-right: 10px;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+        }
+
+        .image-upload-container {
+            margin-bottom: 20px;
+        }
+
+        .thumbnails-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* Sidebar Fix */
+        .side-nav {
+            width: 240px;
+            background: #fff;
+            height: 100vh;
+            border-right: 1px solid #ddd;
+        }
+        .image-preview{
+            width: 300px; 
+    height: auto; 
+    border: 1px solid #ccc; 
+    object-fit: contain; 
+        }
+
+    </style>
+</head>
+<body>
+    <%- include('../partials/admin/sideNav.ejs') %>
+    <section class="content-main">
+        <div class="content-header">
+            <h2 class="content-title">Add New Product</h2>
+        </div>
+
+        <div class="card">
+            <form id="productForm" enctype="multipart/form-data" action="/admin/add-product" method="post">
+                <div class="mb-4">
+                    <label class="form-label">Product Name</label>
+                    <input type="text" class="form-control" name="productName" id="product_name">
+                    <div id="productName-error" class="error-message"></div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Product Category</label>
+                    <select class="form-select" name="category">
+                        <option value="">Select category</option>
+                        <% categorie.forEach((category) => { %>
+                            <option value="<%= category._id %>"><%= category.name %></option>
+                        <% }); %>
+                    </select>
+                    <div id="category-error" class="error-message"></div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="mb-4">
+                            <label class="form-label">Regular Price</label>
+                            <input type="text" class="form-control" name="regularPrice" placeholder="$">
+                            <div id="regularPrice-error" class="error-message"></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="mb-4">
+                            <label class="form-label">Stock Count</label>
+                            <input type="number" class="form-control" name="quantity">
+                            <div id="stock-error" class="error-message"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Sizes Available</label>
+                    <div class="sizes-container">
+                        <div class="size-input">
+                            <label>S:</label>
+                            <input type="text" name="sizeS">
+                        </div>
+                        <div class="size-input">
+                            <label>M:</label>
+                            <input type="text" name="sizeM">
+                        </div>
+                        <div class="size-input">
+                            <label>L:</label>
+                            <input type="text" name="sizeL">
+                        </div>
+                        <div class="size-input">
+                            <label>XL:</label>
+                            <input type="text" name="sizeXL">
+                        </div>
+                        <div class="size-input">
+                            <label>XXL:</label>
+                            <input type="text" name="sizeXXL">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- <div class="mb-4">
+                    <label class="form-label">Colors (Comma-separated)</label>
+                    <input type="text" class="form-control" name="colors" placeholder="Red, Blue, Green...">
+                    <div id="colors-error" class="error-message"></div>
+                </div> -->
+
+                <div class="mb-4">
+                    <label class="form-label">Product Description</label>
+                    <textarea class="form-control" name="description" rows="4"></textarea>
+                    <div id="description-error" class="error-message"></div>
+                </div>
+
+                <div class="card">
+                    <h4>Choose Images</h4>
+                    <div class="thumbnails-container" id="addedImagesContainer"></div>
+
+                    <div class="image-upload-container">
+                        <input type="file" class="form-control" name="productImage" accept="image/*" onchange="handleImageSelect(event, 1)">
+                        <div class="image-cropper">
+                            <img id="cropperImg1" src="" class="image-preview">
+                            <button type="button" class="btn btn-primary" onclick="saveCroppedImage(1)" style="color: blue;"    >Save</button>
+                        </div>
+                    </div>
+                    <div class="image-upload-container">
+                        <input type="file" class="form-control" name="productImage" accept="image/*" onchange="handleImageSelect(event, 2)">
+                        <div class="image-cropper">
+                            <img id="cropperImg2" src="">
+                            <button type="button" class="btn btn-primary" onclick="saveCroppedImage(2)" style="color: blue;">Save</button>
+                        </div>
+                    </div>
+                    <div class="image-upload-container">
+                        <input type="file" class="form-control" name="productImage" accept="image/*" onchange="handleImageSelect(event, 3)">
+                        <div class="image-cropper">
+                            <img id="cropperImg3" src="">
+                            <button type="button" class="btn btn-primary" onclick="saveCroppedImage(3)" style="color: blue;">Save</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="publish-btn">Publish</button>
+            </form>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
+    <script>
+        let croppers = {};
+
+        function handleImageSelect(event, index) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgElement = document.getElementById(`cropperImg${index}`);
+                    imgElement.src = e.target.result;
+
+                    if (croppers[index]) {
+                        croppers[index].destroy();
+                    }
+                    croppers[index] = new Cropper(imgElement, {
+                        aspectRatio: 1,
+                        viewMode: 1
+                    });
+
+                    event.target.nextElementSibling.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveCroppedImage(index) {
+            if (croppers[index]) {
+                const croppedCanvas = croppers[index].getCroppedCanvas();
+                const thumbnail = document.createElement('img');
+                thumbnail.src = croppedCanvas.toDataURL();
+                thumbnail.className = 'thumbnail';
+                document.getElementById('addedImagesContainer').appendChild(thumbnail);
+                document.querySelector(`#cropperImg${index}`).parentElement.style.display = 'none';
+            }
+        }
+
+        function validateForm() {
+            let isValid = true;
+            return isValid;
+        }
+
+        // document.getElementById('productForm').onsubmit = function(e) {
+        //     e.preventDefault();
+        //     if (validateForm()) {
+        //     }
+        // };
+    </script>
+</body>
+</html>

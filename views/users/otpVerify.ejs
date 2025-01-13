@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zxx">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Male_Fashion Template" />
+    <meta name="keywords" content="Male_Fashion, unica, creative, html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Aura-Men</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/font-awesome.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/elegant-icons.css" type="text/css" />
+    <link rel="stylesheet" href="css/magnific-popup.css" type="text/css" />
+    <link rel="stylesheet" href="css/nice-select.css" type="text/css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/slicknav.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/style.css" type="text/css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body,
+      html {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f8f9fa;
+      }
+      .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+      }
+      .card {
+        width: 100%;
+        max-width: 800px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .login-section {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+      .login-form,
+      .login-image {
+        flex: 1;
+        padding: 10px;
+      }
+      .login-form {
+        max-width: 50%;
+      }
+      .login-image {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        max-width: 40%;
+      }
+      .login-image img {
+        max-width: 100%;
+        height: auto;
+      }
+      .social-btns {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 10px;
+      }
+      .social-btns button {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+      }
+      .form-group label {
+        font-size: 0.875rem;
+      }
+      .form-control {
+        font-size: 0.875rem;
+        padding: 0.5rem;
+      }
+      .btn-primary {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+      }
+      .card-title {
+        font-size: 1.25rem;
+      }
+      .login-image .sign-up-link {
+        color: #333;
+        text-decoration: none;
+      }
+      .login-image .sign-up-link:hover {
+        color: #ff7f50;
+      }
+      .error-message {
+        color: red;
+        font-size: 0.75rem;
+        display: none;
+      }
+      #timer {
+        font-weight: bold;
+        color:black;
+        margin-top: 15px;
+      }
+      #resendValidate[disabled] {
+        background-color: #ddd;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="card-body login-section">
+          <div class="login-form mt-5">
+            <% if(msg.length>0){ %>
+              <h6 class="text-danger text-center"><%=msg%></h6>
+            <%}%>
+            <h3 class="card-title text-center">OTP Verification</h3>
+            <form id="otpValidate" method="post" action="/emailVerify">
+              <div class="form-group mt-3px">
+                <label>Enter Valid OTP</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  name="otp"
+                  id="otp"
+                  placeholder="Enter OTP"
+                />
+                <div id="error1" class="error-message"></div>
+              </div>
+              <button type="submit" class="btn btn-primary">Verify OTP</button>
+            </form>
+            <form action="/resendOtp" method="post">
+              <button
+                id="resendValidate"
+                type="submit"
+                class="btn btn-info"
+                style="margin-left: 115px; position: absolute; margin-top: -50px; padding: 10px;"
+              >
+                Resend OTP
+              </button>
+              <div id="timer">Time Remaining: 01:00</div>
+            </form>
+          </div>
+          <div class="login-image">
+            <a href="login">
+              <img src="/images/Rectangle 2.jpg" alt="Shopping Site" />
+            </a>
+            <div class="text-center mt-2">
+              <a href="/login" class="sign-up-link">Already Registered? Login</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      let timeRemaining = 60; // 1 minute
+      const timerDisplay = document.getElementById('timer');
+      const resendButton = document.getElementById('resendValidate');
+
+      const countdown = setInterval(() => {
+        if (timeRemaining > 0) {
+          timeRemaining--;
+          const minutes = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
+          const seconds = String(timeRemaining % 60).padStart(2, '0');
+          timerDisplay.textContent = `Time Remaining: ${minutes}:${seconds}`;
+        } else {
+          clearInterval(countdown);
+          timerDisplay.textContent = "You can now resend the OTP.";
+          resendButton.removeAttribute('disabled');
+        }
+      }, 1000);
+    </script>
+  </body>
+</html>
