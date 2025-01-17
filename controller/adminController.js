@@ -3,9 +3,12 @@ const User = require("../models/userSchema");
 const { options } = require("../routes/userRouter");
 const Category = require("../models/categorySchema");
 const Products = require("../models/productSchema");
+const Offer = require('../models/offerSchema');
 const path = require("path");
 const sharp = require("sharp");
 const fs = require("fs");
+const Product = require("../models/productSchema");
+const router = require("../routes/userRouter");
 const loadDashboard = async (req, res) => {
   try {
     res.render("dashboard");
@@ -112,7 +115,12 @@ const loadCategory = async (req, res) => {
 };
 const loadOffer = async (req, res) => {
   try {
-    return res.render("offers");
+    const offers = await Offer.find().populate('category')
+    console.log(offers);
+    
+    return res.render("offers",{
+      offers
+    });
   } catch (error) {
     console.log("offer page not found");
     res.status(500).send("server error");
@@ -142,7 +150,7 @@ const userUnBlocked = async (req, res) => {
 };
 const categoryAdd = async (req, res) => {
   try {
-    return res.render("addCategory");
+    return res.render("addCategory",{msg:req.flash('errMsg')});
   } catch (error) {
     console.log("category page nt found");
     res.status(500).send("server error");
@@ -155,9 +163,13 @@ const CategoryAdding = async (req, res) => {
 
     if (name == "" || description == "") {
       req.flash("errMsg", "All Field Required");
-      return res.redirect("/admin/categories");
+      return res.redirect("/admin/addCategory");
     }
-
+    const categoryCheck = await Category.find({name:name})
+    if(categoryCheck){
+      req.flash('errMsg','The Category is already exists');
+      return res.redirect('/admin/addCategory');
+    }
     const data = {
       name: name,
       description: description,
@@ -232,14 +244,14 @@ const loadProducts = async (req, res) => {
       page = parseInt(req.query.page, 10);
     }
     const limit = 5;
-    const products = await Products.find()
+    const product = await Products.find()
       .populate("category")
       .limit(limit)
       .skip((page - 1) * limit);
     const count = await Products.countDocuments();
     const totalPage = Math.ceil(count / limit);
     return res.render("products", {
-      product: products,
+      product,
       totalPage,
       currentPage: page,
     });
@@ -305,10 +317,194 @@ const productsAdd = async (req, res) => {
 
     return res.redirect("/admin/products");
   } catch (error) {
+    console.log(error.message)
     console.log("Product adding Problem", error);
     res.status(500).send("Server error");
   }
 };
+const editeProduct = async (req,res)=>{
+  try {
+    const id = req.params.id;
+
+    const product = await Product.findById(id);
+    const category = await Category.find();
+    res.render("editeProduct", { product,category });
+  } catch (error) {
+    console.log('product edite page is not found',error);
+    res.status(500).send('server error');
+    
+  }
+}
+const productEdite = async (req,res)=>{
+  try {
+    const products = req.body;
+    const id = req.params.id;
+
+    const image = [];
+    if (req.files && req.files.length > 0) {
+      for (let i = 0; i < req.files.length; i++) {
+        const originalImagePath = req.files[i].path;
+
+        const uploadsDir = path.join(__dirname, "../public/uploads");
+
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+
+        const resizedImageFilename = `resized-${req.files[i].filename}`;
+        const resizedImagePath = path.join(uploadsDir, resizedImageFilename);
+
+        await sharp(originalImagePath)
+          .resize({ width: 300, height: 300 })
+          .toFile(resizedImagePath);
+
+        image.push(resizedImageFilename);
+      }
+    }
+
+    const updatedProduct = {
+      productName: products.productName,
+      description: products.description,
+      regularPrice: products.regularPrice,
+      quantity: products.quantity,
+      category:products.category,
+      size: {
+        sizeS: products.small,
+        sizeM: products.medium,
+        sizeL: products.large,
+        sizeXL: products.XL,
+        sizeXXL: products.XXL,
+      },
+      colors: products.colors,
+      productImage: image.length==0? req.body.existingImages : image,
+      status: "Available",
+    }
+    console.log(updatedProduct)
+    await Products.updateOne({ _id: id }, { $set: updatedProduct });
+    res.redirect("/admin/products");
+  } catch (error) {
+    console.log(error.message)
+    console.log('products adding error',error);
+    res.status(500).send('server error');
+    
+  }
+}
+const productBlock = async (req,res)=>{
+  try {
+    const id = req.params.id
+    console.log(id);
+    
+
+    await Product.findByIdAndUpdate(id,{$set:{isBlocked:true}})
+    return res.redirect('/admin/products');
+  } catch (error) {
+    console.log('product blocking error',error);
+    res.status(500).send('server error');
+    
+  }
+}
+const productUnBlock = async (req,res)=>{
+  try {
+    const id = req.params.id
+    await Product.findByIdAndUpdate(id,{$set:{isBlocked:false}})
+    return res.redirect('/admin/products');
+  } catch (error) {
+    console.log('product unbloking error');
+    res.status(500).send('server error');
+    
+  }
+}
+const offerAdd = async (req,res)=>{
+  try {
+
+    const category = await Category.find()    
+    return res.render('addOffers',{category})
+  } catch (error) {
+    console.log('offer adding page not found');
+    res.status(500).send('server error');
+  }
+}
+
+const addOffer = async(req,res)=>{
+  try {
+    console.log(req.body);
+    const offer = req.body;
+    // const {category} = req.body
+    const category = await Category.findOne({name: offer.category})
+      const offerData ={
+        startDate:offer.startDate,
+        endDate:offer.endDate,
+        minPrice:offer.minPrice,
+        maxPrice:offer.maxPrice,
+        category: category._id,
+        offer:offer.offer
+      }
+      await Offer.insertMany(offerData);
+     res.redirect('/admin/offers');
+  } catch (error) {
+    console.log('offer adding error',error);
+    res.status(500).send('server error');
+    
+  }
+}
+const offerList = async(req,res)=>{
+  try {
+    const id = req.params.id
+    await Offer.updateOne({_id:id},{$set:{isActive:true}})
+    res.redirect('/admin/offers');
+
+  } catch (error) {
+    console.log('product listing error',error);
+    res.status(500).send('server error');
+    
+    
+  }
+}
+const offerUnList = async(req,res)=>{
+  try {
+    const id = req.params.id
+    await Offer.updateOne({_id:id},{$set:{isActive:false}})
+    res.redirect('/admin/offers');
+  } catch (error) {
+    console.log('offer unlisting error');
+    res.status(500).send('server error');
+  }
+}
+const editeOffer = async(req,res)=>{
+  try {
+
+    const id = req.params.id
+    const offerFind = await Offer.findById(id)
+    const category = await Category.find()
+    res.render('editeOffer',{offerFind,
+      category
+    })
+  } catch (error) {
+    console.log('edite page is not found',error);
+    res.status(500).send('server error');
+    
+  }
+}
+const offerEdite = async(req,res)=>{
+  try {
+   const id = req.params.id
+    const offer = req.body
+    const category = await Category.findOne({name: offer.category})
+    const updateOfferData ={
+      startDate:offer.startDate,
+      endDate:offer.endDate,
+      minPrice:offer.minPrice,
+      maxPrice:offer.maxPrice,
+      category: category._id,
+      offer:offer.offer
+    }
+    await Offer.updateOne({_id:id},{$set:updateOfferData})
+    res.redirect('/admin/offers');
+  } catch (error) {
+    
+  }
+}
+
 module.exports = {
   loadLogin,
   loadDashboard,
@@ -329,4 +525,15 @@ module.exports = {
   categoryListed,
   categoryUnList,
   productsAdd,
+  productEdite,
+  editeProduct,
+  productBlock,
+  productUnBlock,
+  offerAdd,
+  addOffer,
+  offerList,
+  offerUnList,
+  editeOffer,
+  offerEdite,
+  
 };

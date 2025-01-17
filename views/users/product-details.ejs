@@ -29,9 +29,35 @@
     <link rel="stylesheet" href="/css/flaticon.css" />
     <link rel="stylesheet" href="/css/icomoon.css" />
     <link rel="stylesheet" href="/css/style.css" />
+
+    <style>
+      .breadcrumb-wrap {
+            background: var(--light-gray);
+            padding: 15px 0;
+            margin-bottom: 50px;
+        }
+
+        .breadcrumb {
+            margin: 0;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            margin: 0 10px;
+            color: #666;
+        }
+    </style>
   </head>
   <body class="goto-here">
+	
     <div class="py-1 bg-black">
+		
       <div class="container">
         <div
           class="row no-gutters d-flex align-items-start align-items-center px-md-0"
@@ -71,18 +97,18 @@
 
     <div
       class="hero-wrap hero-bread"
-      style="background-image: url('images/bg_6.jpg')"
+      style="background-image: url('/images/bg_6.jpg')"
     >
       <div class="container">
         <div
           class="row no-gutters slider-text align-items-center justify-content-center"
         >
           <div class="col-md-9 ftco-animate text-center">
-            <p class="breadcrumbs">
+            <!-- <p class="breadcrumbs">
               <span class="mr-2"><a href="index.html">Home</a></span>
               <span>Shop</span>
-            </p>
-            <h1 class="mb-0 bread">Shop</h1>
+            </p> -->
+            <h1 class="mb-0 bread">Product Details</h1>
           </div>
         </div>
       </div>
@@ -90,16 +116,42 @@
 
     <section class="ftco-section">
       <div class="container">
+        <div class="breadcrumbs" style="margin-top: -40px;">
+          <a href="/">Home</a>
+          <span>></span>
+          <a href="/shopping">Shop</a>
+          <span>>></span> 
+          <a href="/product-details">Product Details</a>   
+        </div>
         <div class="row">
-          <div class="col-lg-6 mb-5 ftco-animate">
-            <% for (let i = 0; i < product.productImage.length; i++) { %>
-            <img
-              class="img-fluid"
-              src="/uploads/<%= product.productImage[i] %>"
-              alt="<%= product.productName %>"
-            />
-            <% } %>
-          </div>
+			<div class="col-lg-5 mb-3 ftco-animate">
+				<div class="main-image-container" style="position: relative; overflow: hidden;">
+				  <img
+					id="mainImage"
+					class="img-fluid"
+					src="/uploads/<%= product.productImage[0] %>"
+					alt="<%= product.productName %>"
+					style="width: 100%; max-height: 400px; object-fit: cover; transition: transform 0.3s ease;" 
+					onmousemove="zoomImage(this, event)" 
+					onmouseout="resetImage(this)"
+				  />
+				</div>
+				
+				<!-- Thumbnail Images -->
+				<div class="mt-3 d-flex">
+				  <% for (let i = 0; i < product.productImage.length; i++) { %>
+				  <img
+					class="img-thumbnail me-2"
+					src="/uploads/<%= product.productImage[i] %>"
+					alt="<%= product.productName %>"
+					style="width: 100px; height: 100px; object-fit: cover; cursor: pointer;"
+					onclick="changeMainImage('/uploads/<%= product.productImage[i] %>')"
+				  />
+				  <% } %>
+				</div>
+			  </div>
+			  
+			  			  
           <div class="col-lg-6 product-details pl-md-5 ftco-animate">
             <h3><%= product.productName%></h3>
             <div class="rating d-flex">
@@ -122,8 +174,20 @@
                 >
               </p>
             </div>
-            <p class="price">Price :<span><%=product.regularPrice%></span></p>
-            <p><%= product.description%></p>
+            <% if(offer){ %>
+              <% if(product.regularPrice>offer.minPrice && product.regularPrice<offer.maxPrice){ %>
+                  <p class="price">
+                      <span><del>Price: <%= product.regularPrice %></del></span>
+                      <span style="color: red;">
+                        Offer:<%= product.regularPrice - ((product.regularPrice * offer.offer) / 100) %>
+                      </span>
+                  </p>
+              <% }else{ %>
+                  <p class="price"><span>Price: <%=product.regularPrice%></span></p>
+              <% } %>
+          <% }else{ %>
+              <p class="price"><span>Price: <%=product.regularPrice%></span></p>
+          <% } %>
             <div class="row mt-4">
               <div class="col-md-6">
                 <div class="form-group d-flex">
@@ -174,7 +238,11 @@
               </div>
               <div class="w-100"></div>
               <div class="col-md-12">
-                <p style="color: #000">STOCK : <%=product.quantity%></p>
+                <% if (product.quantity && product.quantity > 0) { %>
+                  <p style="color: #000">TOTAL STOCK: <%= product.quantity %></p>
+              <% } else { %>
+                  <p style="color: red">Out Of Stock</p>
+              <% } %>
               </div>
             </div>
             <p>
@@ -204,16 +272,16 @@
                 >Description</a
               >
 
-              <a
-                class="nav-link ftco-animate mr-lg-1"
-                id="v-pills-2-tab"
-                data-toggle="pill"
-                href="#v-pills-2"
-                role="tab"
-                aria-controls="v-pills-2"
-                aria-selected="false"
-                >Manufacturer</a
-              >
+                <a
+                  class="nav-link ftco-animate mr-lg-1"
+                  id="v-pills-2-tab"
+                  data-toggle="pill"
+                  href="#v-pills-2"
+                  role="tab"
+                  aria-controls="v-pills-2"
+                  aria-selected="false"
+                  >Manufacturer</a
+                >
 
               <a
                 class="nav-link ftco-animate"
@@ -237,9 +305,9 @@
               >
                 <div class="p-4">
                   <h3 class="mb-4"><%= product.productName%></h3>
-                  <p>
-                    New Balance’s 574 is, unquestionably, an icon. Instantly recognizable and enduringly popular, the 574 has come a long way from its origins as a multi-functional blend of trail and road running design. As a marked departure from the narrow racing silhouettes of prior generations, the 574 offered reliable comfort and stylistic versatility, in an unassumingly simple package. The 574 has defied trends and other artificial distinctions to become a fixture in closets all over the world. 	
-                  </p>
+                 <p>
+                  <%= product.description%>
+                 </p>
                 </div>
               </div>
 
@@ -426,6 +494,53 @@
                   </div>
                 </div>
               </div>
+              <div>
+                <h3>Other</h3>
+                <div class="row">
+                <% for(let i=0;i<ranNum.length;i++){ %>
+                  <div class="col-sm-12 col-md-4 ftco-animate d-flex">
+                    <div class="product d-flex flex-column">
+                      <a href="/product-details/<%=allProduct[i]._id %>" class="img-prod">
+                        <img
+                  class="img-fluid"
+                  src="/uploads/<%= allProduct[i].productImage[0] %>"
+                  alt="<%= allProduct[i].productName %>"
+                      />
+                        <div class="overlay"></div>
+                      </a>
+                      <div class="text py-3 pb-4 px-3">
+                        <div class="d-flex">
+                          <div class="cat">
+                            <span></span>
+                          </div>
+                          <div class="rating">
+                            <p class="text-right mb-0">
+                              <a href="#"><span class="ion-ios-star-outline"></span></a>
+                              <a href="#"><span class="ion-ios-star-outline"></span></a>
+                              <a href="#"><span class="ion-ios-star-outline"></span></a>
+                              <a href="#"><span class="ion-ios-star-outline"></span></a>
+                              <a href="#"><span class="ion-ios-star-outline"></span></a>
+                            </p>
+                          </div>
+                        </div>
+                        <h3><a href="#"><%= allProduct[i].productName %></a></h3>
+                        <div class="pricing">
+                          <% if(offer){ %>
+                            <p class="price"><span>Suttu</span></p>
+                          <% }else{ %>
+                            <p class="price"><span>Price: <%=allProduct[i].regularPrice%></span></p>
+                          <% } %>
+                        </div>
+                        <p class="bottom-area d-flex px-3">
+                          <a href="#" class="add-to-cart text-center py-2 mr-1"><span>Add to cart <i class="ion-ios-add ml-1"></i></span></a>
+                          <a href="#" class="buy-now text-center py-2">Buy now<span><i class="ion-ios-cart ml-1"></i></span></a>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                <% } %>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -511,5 +626,35 @@
 		});
 	</script>
      -->
+
+	 <script>
+
+function zoomImage(imageElement, event) {
+  const rect = imageElement.getBoundingClientRect();
+
+
+  const x = event.clientX - rect.left; 
+  const y = event.clientY - rect.top;  
+
+  const xPercent = (x / rect.width) * 100; 
+  const yPercent = (y / rect.height) * 100; 
+
+  
+  imageElement.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+  imageElement.style.transform = "scale(2.0)"; 
+  imageElement.style.cursor = "zoom-in";
+}
+
+function resetImage(imageElement) {
+  
+  imageElement.style.transform = "scale(1)";
+  imageElement.style.transformOrigin = "center center";
+}
+
+
+		function changeMainImage(imageSrc) {
+		  document.getElementById("mainImage").src = imageSrc;
+		}
+	  </script>
   </body>
 </html>

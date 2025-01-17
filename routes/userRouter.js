@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();   
 const userController = require('../controller/userController');
 const passport = require('passport');
-const userCheck = require('../middlewares/userAuth');
+const adminCheck = require('../middlewares/adminAuth');
+
 
 
 router.post('/resendOtp',userController.resendOTP);
@@ -25,6 +26,11 @@ router.get('/changePassword',userController.loadchangePassword);
 router.post('/updatePassword',userController.updateOldPassword);
 router.get('/shopping',userController.shoppingPage);
 router.get('/product-details/:id',userController.loadProductDetails);
+router.get('/category/:id',userController.eachCategory)
+
+
+
+
 
 router.get('/auth/google',passport.authenticate('google'));
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/login'}),(req,res)=>{

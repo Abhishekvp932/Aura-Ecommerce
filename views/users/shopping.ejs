@@ -30,6 +30,29 @@
     <link rel="stylesheet" href="/css/flaticon.css" />
     <link rel="stylesheet" href="/css/icomoon.css" />
     <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      .breadcrumb-wrap {
+            background: var(--light-gray);
+            padding: 15px 0;
+            margin-bottom: 50px;
+        }
+
+        .breadcrumb {
+            margin: 0;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            margin: 0 10px;
+            color: #151414;
+        }
+    </style>
   </head>
   <body class="goto-here">
     <div class="py-1 bg-black">
@@ -92,7 +115,11 @@
     <section class="ftco-section bg-light">
       
       <div class="container">
-        
+        <div class="breadcrumbs">
+          <a href="/">Home</a>
+          <span>> </span>
+          <a href="/shopping">Shop</a>    
+        </div>
         <div class="row">
           <div class="col-md-8 col-lg-10 order-md-last">
     				<div class="row">
@@ -124,7 +151,20 @@
                   </div>
                   <h3><a href="#"><%= product[i].productName %></a></h3>
                   <div class="pricing">
-                    <p class="price"><span>Price: <%= product[i].regularPrice.toLocaleString('en-IN') %></span></p>
+                    <% if(offer){ %>
+                      <% if(product[i].regularPrice>offer.minPrice && product[i].regularPrice<offer.maxPrice){ %>
+                          <p class="price">
+                              <span><del>Price: <%= product[i].regularPrice %></del></span>
+                              <span style="color: red;">
+                                Offer:<%= product[i].regularPrice - ((product[i].regularPrice * offer.offer) / 100) %>
+                              </span>
+                          </p>
+                      <% }else{ %>
+                          <p class="price"><span>Price: <%=product[i].regularPrice%></span></p>
+                      <% } %>
+                  <% }else{ %>
+                      <p class="price"><span>Price:<%=product[i].regularPrice%></span></p>
+                  <% } %>
                   </div>
                   <p class="bottom-area d-flex px-3">
                     <a href="#" class="add-to-cart text-center py-2 mr-1"><span>Add to cart <i class="ion-ios-add ml-1"></i></span></a>
@@ -142,11 +182,11 @@
                 <div class="block-27">
                   <ul>
                     <li><a href="#">&lt;</a></li>
-                    <li class="active"><span>1</span></li>
-                    <li><a href="#">2</a></li>
-                    <li><a href="#">3</a></li>
-                    <li><a href="#">4</a></li>
-                    <li><a href="#">5</a></li>
+                    <% for (let i = 1; i <= totalPage; i++) { %>
+                      <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
+                        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                      </li>
+                    <% } %>
                     <li><a href="#">&gt;</a></li>
                   </ul>
                 </div>
@@ -170,7 +210,7 @@
                        
                           <ul>
                             <% for (let i = 0; i < category.length; i++) { %>
-                              <li><a href="#"><%= category[i].name %></a></li>
+                              <li><a href="/category/<%=category[i]._id%>"><%= category[i].name %></a></li>
                             <% } %>
                           </ul>
                         </h4>

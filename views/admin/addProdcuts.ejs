@@ -36,7 +36,7 @@
         }
 
         .card {
-            background: #fff;
+            background: white;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 20px;
@@ -203,37 +203,36 @@
                             <input type="text" name="sizeL">
                         </div>
                         <div class="size-input">
-                            <label>XL:</label>
+                            <label style="margin-top: -20px;position: absolute;">XL:</label>
                             <input type="text" name="sizeXL">
                         </div>
                         <div class="size-input">
-                            <label>XXL:</label>
+                            <label style="margin-left: -20px;">XXL:</label>
                             <input type="text" name="sizeXXL">
                         </div>
                     </div>
                 </div>
 
-                <!-- <div class="mb-4">
+                <div class="mb-4">
                     <label class="form-label">Colors (Comma-separated)</label>
                     <input type="text" class="form-control" name="colors" placeholder="Red, Blue, Green...">
                     <div id="colors-error" class="error-message"></div>
-                </div> -->
+                </div>
 
                 <div class="mb-4">
                     <label class="form-label">Product Description</label>
                     <textarea class="form-control" name="description" rows="4"></textarea>
                     <div id="description-error" class="error-message"></div>
                 </div>
-
                 <div class="card">
                     <h4>Choose Images</h4>
                     <div class="thumbnails-container" id="addedImagesContainer"></div>
-
+                
                     <div class="image-upload-container">
                         <input type="file" class="form-control" name="productImage" accept="image/*" onchange="handleImageSelect(event, 1)">
                         <div class="image-cropper">
                             <img id="cropperImg1" src="" class="image-preview">
-                            <button type="button" class="btn btn-primary" onclick="saveCroppedImage(1)" style="color: blue;"    >Save</button>
+                            <button type="button" class="btn btn-primary" onclick="saveCroppedImage(1)" style="color: blue;">Save</button>
                         </div>
                     </div>
                     <div class="image-upload-container">
@@ -251,59 +250,101 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <button type="submit" class="publish-btn">Publish</button>
-            </form>
-        </div>
-    </section>
-
-    <script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
-    <script>
-        let croppers = {};
-
-        function handleImageSelect(event, index) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const imgElement = document.getElementById(`cropperImg${index}`);
-                    imgElement.src = e.target.result;
-
-                    if (croppers[index]) {
-                        croppers[index].destroy();
+                </form>
+                </div>
+                </section>
+                
+                <script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
+                <script>
+                    let croppers = {};
+                
+                    function handleImageSelect(event, index) {
+                        const file = event.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const imgElement = document.getElementById(`cropperImg${index}`);
+                                imgElement.src = e.target.result;
+                
+                                if (croppers[index]) {
+                                    croppers[index].destroy();
+                                }
+                                croppers[index] = new Cropper(imgElement, {
+                                    aspectRatio: 1,
+                                    viewMode: 1
+                                });
+                
+                                event.target.nextElementSibling.style.display = 'block';
+                            };
+                            reader.readAsDataURL(file);
+                        }
                     }
-                    croppers[index] = new Cropper(imgElement, {
-                        aspectRatio: 1,
-                        viewMode: 1
-                    });
-
-                    event.target.nextElementSibling.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function saveCroppedImage(index) {
-            if (croppers[index]) {
-                const croppedCanvas = croppers[index].getCroppedCanvas();
-                const thumbnail = document.createElement('img');
-                thumbnail.src = croppedCanvas.toDataURL();
-                thumbnail.className = 'thumbnail';
-                document.getElementById('addedImagesContainer').appendChild(thumbnail);
-                document.querySelector(`#cropperImg${index}`).parentElement.style.display = 'none';
-            }
-        }
-
-        function validateForm() {
-            let isValid = true;
-            return isValid;
-        }
-
-        // document.getElementById('productForm').onsubmit = function(e) {
-        //     e.preventDefault();
-        //     if (validateForm()) {
-        //     }
-        // };
-    </script>
+                
+                    function saveCroppedImage(index) {
+                        if (croppers[index]) {
+                            const croppedCanvas = croppers[index].getCroppedCanvas();
+                            
+                            // Create container for image and remove icon
+                            const container = document.createElement('div');
+                            container.style.position = 'relative';
+                            container.style.display = 'inline-block';
+                            container.style.marginRight = '10px';
+                            container.style.marginBottom = '10px';
+                            
+                            // Create and style thumbnail
+                            const thumbnail = document.createElement('img');
+                            thumbnail.src = croppedCanvas.toDataURL();
+                            thumbnail.className = 'thumbnail';
+                            thumbnail.style.width = '100px';
+                            thumbnail.style.height = '100px';
+                            thumbnail.style.objectFit = 'cover';
+                            
+                            // Create and style remove icon
+                            const removeIcon = document.createElement('div');
+                            removeIcon.innerHTML = '×';
+                            removeIcon.style.cssText = `
+                                position: absolute;
+                                top: -8px;
+                                right: -8px;
+                                background-color: red;
+                                color: white;
+                                width: 20px;
+                                height: 20px;
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                cursor: pointer;
+                                font-size: 16px;
+                                font-weight: bold;
+                            `;
+                            
+                            // Add click handler for remove icon
+                            removeIcon.onclick = function() {
+                                container.remove();
+                                // Reset the file input and cropper for this index
+                                const input = document.querySelector(`input[type="file"][onchange*="${index}"]`);
+                                input.value = '';
+                                const cropperContainer = document.querySelector(`#cropperImg${index}`).parentElement;
+                                cropperContainer.style.display = 'none';
+                            };
+                            
+                            // Assemble the elements
+                            container.appendChild(thumbnail);
+                            container.appendChild(removeIcon);
+                            document.getElementById('addedImagesContainer').appendChild(container);
+                            
+                            // Hide the cropper after saving
+                            document.querySelector(`#cropperImg${index}`).parentElement.style.display = 'none';
+                        }
+                    }
+                
+                    function validateForm() {
+                        let isValid = true;
+                        return isValid;
+                    }
+                </script>
 </body>
 </html>

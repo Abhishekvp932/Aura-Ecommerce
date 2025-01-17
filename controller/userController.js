@@ -3,6 +3,8 @@ const env = require('dotenv').config()
 const nodemailer = require('nodemailer');
 const Products = require('../models/productSchema');
 const Category = require('../models/categorySchema');
+const offers = require('../models/offerSchema');
+
 
 const signupEmail = async (req,res)=>{
     try {
@@ -99,7 +101,7 @@ const resendOTP = async(req,res)=>{
                 }
             })
             console.log('otp expired');
-          },30000)
+          },60000);
     await sendVerificationEmail(email,otp);
      req.flash('succesMsg','Otp resend successfully');
      res.redirect('/otpVerify');
@@ -222,8 +224,8 @@ const pageNotFound = async(req,res)=>{
 const loadHome = async (req,res)=>{
     try {
       const userLoged = req.session.userLoged
-return res.render('home',{ userLoged });
 
+      res.render('home',{ userLoged });
     } catch (error) {
         console.log("home page not found")
         res.status(500).send('server error')
@@ -358,7 +360,7 @@ const updateOldPassword = async(req,res)=>{
          const userEmail = req.session.userEmail;
          if(newPassword!==cnfmPassword){
             req.flash('ermsg','Password does not match')
-            return res.redirect('/changePassword');
+            return res.redirect('/changePassword'); 
          }else if(newPassword == ''||cnfmPassword==''){
             req.flash('ermsg','All field required')
             return res.redirect('/changePassword');
@@ -376,20 +378,43 @@ const updateOldPassword = async(req,res)=>{
     }
 }
 
-const shoppingPage = async (req,res)=>{
+const shoppingPage = async (req, res) => {
     try {
-        
-     
-        const userLoged = req.session.userLoged
-        const product = await Products.find();
-        const categories = await Category.find({isListed:true});
-        const categoryIds = categories.map((category)=> category._id.toString());
-        const categoryWithIds = categories.map(category=> ({_id:category._id,name:category.name}));
-        return res.render('shopping',{
-            userLoged,
-            product:product,
-            category:categoryWithIds
-        });
+      let page = 1;
+      if (req.query.page) {
+        page = parseInt(req.query.page, 10);
+      }
+      let limit = 9;
+      const product = await Products.find({ isBlocked: false })
+        .populate('category')
+        .limit(limit)
+        .skip((page - 1) * limit);
+      const count = await Products.countDocuments({ isBlocked: false });
+      const totalPage = Math.ceil(count / limit);
+    //   console.log(product);
+      
+  
+      const userLoged = req.session.userLoged;
+      const categories = await Category.find({ isListed: true });
+      const categoryWithIds = categories.map((category) => ({
+        _id: category._id,
+        name: category.name,
+      }));
+      
+   
+   
+      const offer=await offers.findOne({category: product[0].category._id})
+      return res.render('shopping', {
+        userLoged,
+        product,
+        category: categoryWithIds,
+        page,
+        count,
+        totalPage,
+        currentPage: page,
+        offer,
+      });
+   
     } catch (error) {
         console.log('shopping page is not found',error);
 
@@ -403,17 +428,66 @@ const loadProductDetails = async(req,res)=>{
         const userLoged = req.session.userLoged;
        
          const product = await Products.findById(productId);
-
+         const category = await Category.findById(product.category);
+        const offer = await offers.findOne({isActive:true}) 
+        const allProduct = await Products.find({category: category._id})
+        
     if (!product) {
       req.flash('error', 'Product not found');
       return res.redirect('/shopping');
     }
+
+    let randomNum=new Set()
+    while(randomNum.size<3){
+        const num=Math.floor(Math.random() * 10)
+        if(num<allProduct.length){
+            randomNum.add(num)
+        }
+    }
+
+    console.log(allProduct);
+    
+
+    const ranNum=Array.from(randomNum)
+
     return res.render('product-details', {
         userLoged,
         product,
+        offer,
+        ranNum,
+        allProduct
       });
     } catch (error) {
         console.log('product details page not found',error);
+        res.status(500).send('server error');
+        
+    }
+}
+const eachCategory = async(req,res)=>{
+    try {
+        const {id} = req.params
+        
+        const userLoged = req.session.userLoged
+        const category = await Category.find({_id:id})
+        if(!category){
+            return res.redirect('/page-404');
+        }
+        const offer=await offers.findOne({category: id,isActive:true})
+        const offerActive = offers.find({isActive:true})
+        console.log('offer', offer);
+        const product = await Products.find({category:id})
+        const allCategory = await Category.find();
+        if(offerActive){
+        res.render('category',{
+            category,
+            product,
+            allCategory,
+            userLoged,
+            offer
+        })
+    }
+    } catch (error) {
+        console.log('category page is not found',error);
         res.status(500).send('server error');
         
     }
@@ -438,5 +512,6 @@ module.exports ={
     loadchangePassword, // change password page
     updateOldPassword, // updating old password and enter new password
     shoppingPage, //shopping page load
-    loadProductDetails //product details page load
+    loadProductDetails, //product details page load
+    eachCategory, 
 }

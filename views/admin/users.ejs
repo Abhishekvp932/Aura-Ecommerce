@@ -265,7 +265,7 @@
                 <table class="w-full whitespace-no-wrap">
                   <thead>
                     <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
-                      <th class="px-4 py-3">USER IMAGE</th>
+                      <th class="px-4 py-3">NO</th>
                       <th class="px-4 py-3">USER NAME</th>
                       <th class="px-4 py-3">EMAIL</th>
                       <th class="px-4 py-3">USER CREATED</th>
@@ -276,13 +276,9 @@
                   <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
                     <tr class="text-gray-700 dark:text-gray-400">
                      
-                      <% Users.forEach(user => {%>
+                      <% Users.forEach((user,index) => {%>
                         <tr>
-                            <td class="px-4 py-3">
-                                <div class="w-12 h-12 rounded">
-                                  <img class="object-cover w-full h-full rounded" src="/images/choose-1.jpg" alt="Product image" />
-                                </div>
-                              </td>
+                      <td class="px-4 py-3"><%= index+1 %></td>
                       <td class="px-4 py-3"><%= user.name %></td>
                       <td class="px-4 py-3"><%= user.email %></td>
                       <td><%= new Date(user.createdOn).toLocaleDateString('en-US', { 
