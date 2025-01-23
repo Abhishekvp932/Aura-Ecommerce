@@ -160,7 +160,6 @@
                 <div class="mb-4">
                     <label class="form-label">Product Category</label>
                     <select class="form-select" name="category">
-                        <option value="">Select category</option>
                         <% category.forEach((category) => { %>
                             <option value="<%= category._id %>"><%= category.name %></option>
                         <% }); %>
@@ -190,23 +189,23 @@
                     <div class="sizes-container">
                         <div class="size-input">
                             <label>S:</label>
-                            <input type="text" name="sizeS">
+                            <input type="text" name="small">
                         </div>
                         <div class="size-input">
                             <label>M:</label>
-                            <input type="text" name="sizeM">
+                            <input type="text" name="medium">
                         </div>
                         <div class="size-input">
                             <label>L:</label>
-                            <input type="text" name="sizeL">
+                            <input type="text" name="large">
                         </div>
                         <div class="size-input">
                             <label  style="margin-top: -20px;position: absolute;">XL:</label>
-                            <input type="text" name="sizeXL">
+                            <input type="text" name="XL">
                         </div>
                         <div class="size-input">
                             <label style="margin-left: -20px;">XXL:</label>
-                            <input type="text" name="sizeXXL">
+                            <input type="text" name="XXL">
                         </div>
                     </div>
                 </div>

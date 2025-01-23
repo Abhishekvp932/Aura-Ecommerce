@@ -2,12 +2,49 @@
 <html lang="en">
   <head>
     <title>Aura-Men</title>
+    <style>
+      /* Custom button styles */
+.sorting-buttons button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 30px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.sorting-buttons button:hover {
+  background-color: #f96d00;
+  color: #fff;
+}
+
+
+select.form-control {
+  border-radius: 25px;
+  padding: 10px;
+  border: 2px solid #ddd;
+  font-size: 16px;
+  color: #333;
+  transition: border-color 0.3s ease;
+}
+
+select.form-control:focus {
+  border-color: #f96d00;
+  box-shadow: 0 0 5px rgba(249, 109, 0, 0.5);
+}
+
+/* Dropdown arrow */
+.select2-container .select2-selection__arrow {
+  background-color: #f96d00 !important;
+}
+
+    </style>
     <meta charset="utf-8" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link
       href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800"
       rel="stylesheet"
@@ -223,49 +260,63 @@
                     
               <div class="sidebar-box-2">
                 <h2 class="heading">Price Range</h2>
-                <form method="post" class="colorlib-form-2">
+                <form method="get" action="/category/<%= category[0]._id %>" class="colorlib-form-2">
                   <div class="row">
                     <div class="col-md-12">
                       <div class="form-group">
-                        <label for="guests">Price from:</label>
+                        <label for="priceFrom">Price from:</label>
                         <div class="form-field">
                           <i class="icon icon-arrow-down3"></i>
-                          <select
-                            name="people"
-                            id="people"
-                            class="form-control"
-                          >
-                            <option value="#">1</option>
-                            <option value="#">200</option>
-                            <option value="#">300</option>
-                            <option value="#">400</option>
-                            <option value="#">1000</option>
+                          <select name="priceFrom" id="priceFrom" class="form-control" onchange="this.form.submit()">
+                            <option value="" <%= !priceFrom ? 'selected' : '' %>>Select Price From</option>
+                            <option value="1" <%= priceFrom === '1' ? 'selected' : '' %>>₹1</option>
+                            <option value="200" <%= priceFrom === '200' ? 'selected' : '' %>>₹200</option>
+                            <option value="300" <%= priceFrom === '300' ? 'selected' : '' %>>₹300</option>
+                            <option value="400" <%= priceFrom === '400' ? 'selected' : '' %>>₹400</option>
+                            <option value="1000" <%= priceFrom === '1000' ? 'selected' : '' %>>₹1000</option>
                           </select>
                         </div>
                       </div>
                     </div>
                     <div class="col-md-12">
                       <div class="form-group">
-                        <label for="guests">Price to:</label>
+                        <label for="priceTo">Price to:</label>
                         <div class="form-field">
                           <i class="icon icon-arrow-down3"></i>
-                          <select
-                            name="people"
-                            id="people"
-                            class="form-control"
-                          >
-                            <option value="#">2000</option>
-                            <option value="#">4000</option>
-                            <option value="#">6000</option>
-                            <option value="#">8000</option>
-                            <option value="#">10000</option>
+                          <select name="priceTo" id="priceTo" class="form-control" onchange="this.form.submit()">
+                            <option value="" <%= !priceTo ? 'selected' : '' %>>Select Price To</option>
+                            <option value="2000" <%= priceTo === '2000' ? 'selected' : '' %>>₹2000</option>
+                            <option value="4000" <%= priceTo === '4000' ? 'selected' : '' %>>₹4000</option>
+                            <option value="6000" <%= priceTo === '6000' ? 'selected' : '' %>>₹6000</option>
+                            <option value="8000" <%= priceTo === '8000' ? 'selected' : '' %>>₹8000</option>
+                            <option value="10000" <%= priceTo === '10000' ? 'selected' : '' %>>₹10000</option>
                           </select>
                         </div>
                       </div>
                     </div>
                   </div>
+                  
+                  <!-- Preserve sort option when filtering by price -->
+                  <% if (sortOption) { %>
+                    <input type="hidden" name="sort" value="<%= sortOption %>">
+                  <% } %>
                 </form>
+                
+                <div class="sorting-dropdown">
+                  <form method="get" action="/category/<%= category[0]._id %>">
+                    <select name="sort" class="form-select" onchange="this.form.submit()">
+                      <option value="" selected disabled>Sort by</option>
+                      <option value="low-to-high" <%= sortOption === 'low-to-high' ? 'selected' : '' %>>Price: Low to High</option>
+                      <option value="high-to-low" <%= sortOption === 'high-to-low' ? 'selected' : '' %>>Price: High to Low</option>
+                      <option value="a-z" <%= sortOption === 'a-z' ? 'selected' : '' %>>A-Z</option>
+                      <option value="z-a" <%= sortOption === 'z-a' ? 'selected' : '' %>>Z-A</option>
+                    </select>
+                  </form>
+                </div>                
               </div>
+
+
+              
             </div>
           </div>
         </div>

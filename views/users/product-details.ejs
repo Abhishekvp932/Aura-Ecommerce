@@ -7,7 +7,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link
       href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800"
       rel="stylesheet"
@@ -52,6 +52,42 @@
             margin: 0 10px;
             color: #666;
         }
+
+      
+.rating-container .stars {
+  display: inline-block;
+}
+
+.star-group {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+.star-label {
+  cursor: pointer;
+  padding: 0 2px;
+  color: #ddd;
+}
+
+.star-label:hover,
+.star-label:hover ~ .star-label,
+input[type="radio"]:checked ~ .star-label {
+  color: #ffc107;
+}
+
+.review-item {
+  background-color: #f8f9fa;
+}
+
+.text-warning {
+  color: #ffc107;
+}
+#addCart{
+  background-color: #ffc107;
+}
+
+
     </style>
   </head>
   <body class="goto-here">
@@ -153,103 +189,81 @@
 			  
 			  			  
           <div class="col-lg-6 product-details pl-md-5 ftco-animate">
-            <h3><%= product.productName%></h3>
-            <div class="rating d-flex">
-              <p class="text-left mr-4">
-                <a href="#" class="mr-2">5.0</a>
-                <a href="#"><span class="ion-ios-star-outline"></span></a>
-                <a href="#"><span class="ion-ios-star-outline"></span></a>
-                <a href="#"><span class="ion-ios-star-outline"></span></a>
-                <a href="#"><span class="ion-ios-star-outline"></span></a>
-                <a href="#"><span class="ion-ios-star-outline"></span></a>
-              </p>
-              <p class="text-left mr-4">
-                <a href="#" class="mr-2" style="color: #000"
-                  >100 <span style="color: #bbb">Rating</span></a
-                >
-              </p>
-              <p class="text-left">
-                <a href="#" class="mr-2" style="color: #000"
-                  >500 <span style="color: #bbb">Sold</span></a
-                >
-              </p>
-            </div>
-            <% if(offer){ %>
-              <% if(product.regularPrice>offer.minPrice && product.regularPrice<offer.maxPrice){ %>
+            <form action="/addToCart/<%= product._id %>" method="post">
+              <h3><%= product.productName %></h3>
+              <div class="rating d-flex">
+                <p class="text-left mr-4">
+                  <a href="#" class="mr-2">5.0</a>
+                  <a href="#"><span class="ion-ios-star-outline"></span></a>
+                  <a href="#"><span class="ion-ios-star-outline"></span></a>
+                  <a href="#"><span class="ion-ios-star-outline"></span></a>
+                  <a href="#"><span class="ion-ios-star-outline"></span></a>
+                  <a href="#"><span class="ion-ios-star-outline"></span></a>
+                </p>
+                <p class="text-left mr-4">
+                  <a href="#" class="mr-2" style="color: #000">100 <span style="color: #bbb">Rating</span></a>
+                </p>
+                <p class="text-left">
+                  <a href="#" class="mr-2" style="color: #000">500 <span style="color: #bbb">Sold</span></a>
+                </p>
+              </div>
+              <% if (offer) { %>
+                <% if (product.regularPrice > offer.minPrice && product.regularPrice < offer.maxPrice) { %>
                   <p class="price">
-                      <span><del>Price: <%= product.regularPrice %></del></span>
-                      <span style="color: red;">
-                        Offer:<%= product.regularPrice - ((product.regularPrice * offer.offer) / 100) %>
-                      </span>
+                    <span><del>Price: <%= product.regularPrice %></del></span>
+                    <span style="color: red;">
+                      Offer: <%= product.regularPrice - ((product.regularPrice * offer.offer) / 100) %>
+                    </span>
                   </p>
-              <% }else{ %>
-                  <p class="price"><span>Price: <%=product.regularPrice%></span></p>
+                <% } else { %>
+                  <p class="price"><span>Price: <%= product.regularPrice %></span></p>
+                <% } %>
+              <% } else { %>
+                <p class="price"><span>Price: <%= product.regularPrice %></span></p>
               <% } %>
-          <% }else{ %>
-              <p class="price"><span>Price: <%=product.regularPrice%></span></p>
-          <% } %>
-            <div class="row mt-4">
-              <div class="col-md-6">
-                <div class="form-group d-flex">
-                  <div class="select-wrap">
-                    <div class="icon">
-                      <span class="ion-ios-arrow-down"></span>
+              <div class="row mt-4">
+                <div class="col-md-6">
+                  <div class="form-group d-flex">
+                    <div class="select-wrap">
+                      <div class="icon">
+                        <span class="ion-ios-arrow-down"></span>
+                      </div>
+                      <select name="size" id="size" class="form-control">
+                        <% Object.entries(product.size).forEach(([key, value]) => { %>
+                          <option value="<%= key %>"><%= key %> quantity: <%= value %></option>
+                        <% }); %>
+                      </select>
                     </div>
-					<select name="size" id="size" class="form-control">
-						<% Object.entries(product.size).forEach(([key, value]) => { %>
-						  <option value="<%= value %>"><%= key %></option>
-						<% }); %>
-					  </select>
-					  
                   </div>
                 </div>
+                <div class="w-100"></div>
+                <div class="input-group col-md-6 d-flex mb-3">
+                  <span class="input-group-btn mr-2">
+                    <button type="button" class="quantity-left-minus btn" data-type="minus" data-field="">
+                      <i class="ion-ios-remove"></i>
+                    </button>
+                  </span>
+                  <input type="number" id="quantity" name="quantity" class="quantity form-control input-number" value="1" min="1" max="<%= product.quantity %>" />
+                  <span class="input-group-btn ml-2">
+                    <button type="button" class="quantity-right-plus btn" data-type="plus" data-field="">
+                      <i class="ion-ios-add"></i>
+                    </button>
+                  </span>
+                </div>
+                <div class="w-100"></div>
+                <div class="col-md-12">
+                  <% if (product.quantity && product.quantity > 0) { %>
+                    <p style="color: #000">TOTAL STOCK: <%= product.quantity %></p>
+                  <% } else { %>
+                    <p style="color: red">Out Of Stock</p>
+                  <% } %>
+                </div>
               </div>
-              <div class="w-100"></div>
-              <div class="input-group col-md-6 d-flex mb-3">
-                <span class="input-group-btn mr-2">
-                  <button
-                    type="button"
-                    class="quantity-left-minus btn"
-                    data-type="minus"
-                    data-field=""
-                  >
-                    <i class="ion-ios-remove"></i>
-                  </button>
-                </span>
-                <input
-                  type="text"
-                  id="quantity"
-                  name="quantity"
-                  class="quantity form-control input-number"
-                  value="1"
-                  min="1"
-                  max="100"
-                />
-                <span class="input-group-btn ml-2">
-                  <button
-                    type="button"
-                    class="quantity-right-plus btn"
-                    data-type="plus"
-                    data-field=""
-                  >
-                    <i class="ion-ios-add"></i>
-                  </button>
-                </span>
-              </div>
-              <div class="w-100"></div>
-              <div class="col-md-12">
-                <% if (product.quantity && product.quantity > 0) { %>
-                  <p style="color: #000">TOTAL STOCK: <%= product.quantity %></p>
-              <% } else { %>
-                  <p style="color: red">Out Of Stock</p>
-              <% } %>
-              </div>
-            </div>
-            <p>
-              <a href="cart.html" class="btn btn-black py-3 px-5 mr-2"
-                >Add to Cart</a
-              ><a href="cart.html" class="btn btn-primary py-3 px-5">Buy now</a>
-            </p>
+             
+                <button type="submit" class="txt txt-primary py-3 px-5" id="addCart" style="background-color:#ffc107;">Add to Cart</button>
+                <a href="cart.html" class="btn btn-primary py-3 px-5">Buy now</a>
+            
+            </form>                      
           </div>
         </div>
 
@@ -332,165 +346,75 @@
                   </p>
                 </div>
               </div>
-              <div
-                class="tab-pane fade"
-                id="v-pills-3"
-                role="tabpanel"
-                aria-labelledby="v-pills-day-3-tab"
-              >
-                <div class="row p-4">
-                  <div class="col-md-7">
-                    <h3 class="mb-4">23 Reviews</h3>
-                    <div class="review">
-                      <div
-                        class="user-img"
-                        style="background-image: url(images/person_1.jpg)"
-                      ></div>
-                      <div class="desc">
-                        <h4>
-                          <span class="text-left">Jacob Webb</span>
-                          <span class="text-right">14 March 2018</span>
-                        </h4>
-                        <p class="star">
-                          <span>
-                            <i class="ion-ios-star-outline"></i>
-                            <i class="ion-ios-star-outline"></i>
-                            <i class="ion-ios-star-outline"></i>
-                            <i class="ion-ios-star-outline"></i>
-                            <i class="ion-ios-star-outline"></i>
-                          </span>
-                          <span class="text-right"
-                            ><a href="#" class="reply"
-                              ><i class="icon-reply"></i></a
-                          ></span>
-                        </p>
-                        <p>
-                          When she reached the first hills of the Italic
-                          Mountains, she had a last view back on the skyline of
-                          her hometown Bookmarksgrov
-                        </p>
+              <!-- review -->
+              <div class="tab-pane fade" id="v-pills-3" role="tabpanel" aria-labelledby="v-pills-3-tab">
+                <div class="p-4">
+                  <h3 class="mb-4">Reviews</h3>
+                  
+                  <!-- Review Form -->
+                  <div class="review-form mb-5">
+                    <h4 class="mb-3">Write a Review</h4>
+                    <form action="/review/<%= product._id %>" method="post" id="reviewForm">
+                      <input type="hidden" name="productId" value="<%= product._id %>">
+                      <!-- Star Rating -->
+                      <div class="rating-container mb-3">
+                        <div class="stars">
+                          <div class="star-label mb-2">Your Rating:</div>
+                          <div class="star-group">
+                            <% for (let i = 1; i <= 5; i++) { %>
+                              <input 
+                                  type="radio" 
+                                  id="star<%= i %>" 
+                                  name="rating" 
+                                  value="<%= i %>" 
+                                  class="d-none" 
+                              />
+                              <label for="star<%= i %>" class="star-label">
+                                  ★
+                              </label>
+                          <% } %>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div class="review">
-                      <div
-                        class="user-img"
-                        style="background-image: url(images/person_2.jpg)"
-                      ></div>
-                      <div class="desc">
-                        <h4>
-                          <span class="text-left">Jacob Webb</span>
-                          <span class="text-right">14 March 2018</span>
-                        </h4>
-                        <p class="star">
-                          <span>
-                            <i class="ion-ios-star-outline"></i>
-                            <i class="ion-ios-star-outline"></i>
-                            <i class="ion-ios-star-outline"></i>
-                            <i class="ion-ios-star-outline"></i>
-                            <i class="ion-ios-star-outline"></i>
-                          </span>
-                          <span class="text-right"
-                            ><a href="#" class="reply"
-                              ><i class="icon-reply"></i></a
-                          ></span>
-                        </p>
-                        <p>
-                          When she reached the first hills of the Italic
-                          Mountains, she had a last view back on the skyline of
-                          her hometown Bookmarksgrov
-                        </p>
+              
+                      <!-- Review Text -->
+                      <div class="form-group mb-3">
+                        <label for="reviewText">Your Review:</label>
+                        <textarea 
+                          class="form-control" 
+                          id="reviewText" 
+                          name="comment" 
+                          rows="4" 
+                          required
+                          placeholder="Share your experience with this product..."
+                        ></textarea>
                       </div>
-                    </div>
-                    <div class="review">
-                      <div
-                        class="user-img"
-                        style="background-image: url(images/person_3.jpg)"
-                      ></div>
-                      <div class="desc">
-                        <h4>
-                          <span class="text-left">Jacob Webb</span>
-                          <span class="text-right">14 March 2018</span>
-                        </h4>
-                        <p class="star">
-                          <span>
-                            <i class="ion-ios-star-outline"></i>
-                            <i class="ion-ios-star-outline"></i>
-                            <i class="ion-ios-star-outline"></i>
-                            <i class="ion-ios-star-outline"></i>
-                            <i class="ion-ios-star-outline"></i>
-                          </span>
-                          <span class="text-right"
-                            ><a href="#" class="reply"
-                              ><i class="icon-reply"></i></a
-                          ></span>
-                        </p>
-                        <p>
-                          When she reached the first hills of the Italic
-                          Mountains, she had a last view back on the skyline of
-                          her hometown Bookmarksgrov
-                        </p>
-                      </div>
-                    </div>
+              
+                      <!-- Submit Button -->
+                      <button type="submit" class="btn btn-primary">Submit Review</button>
+                    </form>
                   </div>
-                  <div class="col-md-4">
-                    <div class="rating-wrap">
-                      <h3 class="mb-4">Give a Review</h3>
-                      <p class="star">
-                        <span>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          (98%)
-                        </span>
-                        <span>20 Reviews</span>
-                      </p>
-                      <p class="star">
-                        <span>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          (85%)
-                        </span>
-                        <span>10 Reviews</span>
-                      </p>
-                      <p class="star">
-                        <span>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          (98%)
-                        </span>
-                        <span>5 Reviews</span>
-                      </p>
-                      <p class="star">
-                        <span>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          (98%)
-                        </span>
-                        <span>0 Reviews</span>
-                      </p>
-                      <p class="star">
-                        <span>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          <i class="ion-ios-star-outline"></i>
-                          (98%)
-                        </span>
-                        <span>0 Reviews</span>
-                      </p>
-                    </div>
+              
+                  <!-- Display Reviews -->
+                  <div class="reviews-container">
+                    <h4 class="mb-4">Customer Reviews</h4>
+                    <% product.reviews.forEach(review => { %>
+                      <div class="review-item mb-4 p-3 border rounded">
+                          <div class="review-header d-flex justify-content-between align-items-center mb-2">
+                              <div class="rating">
+                                  <!-- Show the rating as stars (you can improve this part) -->
+                                  <% for (let i = 1; i <= 5; i++) { %>
+                                      <i class="bi <%= i <= review.rating ? 'bi-star-fill' : 'bi-star' %> text-warning"></i>
+                                  <% } %>
+                              </div>
+                              <small class="text-muted"><%= review.userId.name %> - <%= new Date(review.date).toLocaleDateString() %></small>
+                          </div>
+                          <div class="review-content">
+                              <p class="mb-1"><%= review.comment %></p>
+                          </div>
+                      </div>
+                  <% }); %>
+                      <p>No reviews yet. Be the first to review this product!</p>
                   </div>
                 </div>
               </div>
@@ -513,23 +437,24 @@
                           <div class="cat">
                             <span></span>
                           </div>
-                          <div class="rating">
-                            <p class="text-right mb-0">
-                              <a href="#"><span class="ion-ios-star-outline"></span></a>
-                              <a href="#"><span class="ion-ios-star-outline"></span></a>
-                              <a href="#"><span class="ion-ios-star-outline"></span></a>
-                              <a href="#"><span class="ion-ios-star-outline"></span></a>
-                              <a href="#"><span class="ion-ios-star-outline"></span></a>
-                            </p>
-                          </div>
+                         
                         </div>
                         <h3><a href="#"><%= allProduct[i].productName %></a></h3>
                         <div class="pricing">
                           <% if(offer){ %>
-                            <p class="price"><span>Suttu</span></p>
-                          <% }else{ %>
+                            <% if(allProduct[i].regularPrice>offer.minPrice && allProduct[i].regularPrice<offer.maxPrice){ %>
+                                <p class="price">
+                                    <span><del>Price: <%= allProduct[i].regularPrice %></del></span>
+                                    <span style="color: red;">
+                                      Offer:<%= allProduct[i].regularPrice - ((allProduct[i].regularPrice * offer.offer) / 100) %>
+                                    </span>
+                                </p>
+                            <% }else{ %>
+                                <p class="price"><span>Price: <%=allProduct[i].regularPrice%></span></p>
+                            <% } %>
+                        <% }else{ %>
                             <p class="price"><span>Price: <%=allProduct[i].regularPrice%></span></p>
-                          <% } %>
+                        <% } %>
                         </div>
                         <p class="bottom-area d-flex px-3">
                           <a href="#" class="add-to-cart text-center py-2 mr-1"><span>Add to cart <i class="ion-ios-add ml-1"></i></span></a>
@@ -589,35 +514,25 @@
     <script src="/js/google-map.js"></script>
     <script src="/js/main.js"></script>
 
-    <!-- <script>
+    <script>
 		$(document).ready(function(){
 
 		var quantitiy=0;
 		   $('.quantity-right-plus').click(function(e){
-		        
-		        // Stop acting like a button
-		        e.preventDefault();
-		        // Get the field name
+
+		        e.preventDefault()
 		        var quantity = parseInt($('#quantity').val());
-		        
-		        // If is not undefined
 		            
 		            $('#quantity').val(quantity + 1);
-
-		          
-		            // Increment
 		        
 		    });
 
 		     $('.quantity-left-minus').click(function(e){
-		        // Stop acting like a button
+		       
 		        e.preventDefault();
-		        // Get the field name
+		       
 		        var quantity = parseInt($('#quantity').val());
 		        
-		        // If is not undefined
-		      
-		            // Increment
 		            if(quantity>0){
 		            $('#quantity').val(quantity - 1);
 		            }
@@ -625,7 +540,7 @@
 		    
 		});
 	</script>
-     -->
+      
 
 	 <script>
 

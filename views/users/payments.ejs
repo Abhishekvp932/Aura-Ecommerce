@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Success</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+        }
+
+        .success-container {
+            background: url('/images/Frame.jpg') center/cover;
+            padding: 40px;
+            border-radius: 10px;
+            display: flex;
+            max-width: 800px;
+            width: 90%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-section {
+            flex: 1;
+            background: #000;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+        }
+
+        .logo {
+            width: 150px;
+            height: 150px;
+        }
+
+        .content-section {
+            flex: 1;
+            background: white;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        .check-icon {
+            width: 60px;
+            height: 60px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .check-icon svg {
+            width: 30px;
+            height: 30px;
+            fill: white;
+        }
+
+        h1 {
+            color: #333;
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+
+        p {
+            color: #666;
+            margin: 0 0 20px 0;
+        }
+
+        .track-link {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+        .track-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="logo-section">
+            <img src="/images/logo.jpg" alt="AURA Logo" class="logo">
+        </div>
+        <div class="content-section">
+            <h1>Congrats!</h1>
+            <div class="check-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+            </div>
+            <p>Your order has been successfully placed.</p>
+            <p>Thank you for shopping with us :)</p>
+            <p>Track your order? <a href="/userOrders" class="track-link">Click here</a></p>
+        </div>
+    </div>
+</body>
+</html>

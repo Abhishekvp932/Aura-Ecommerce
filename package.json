@@ -24,6 +24,7 @@
     "passport-google-oauth20": "^2.0.0",
     "path": "^0.12.7",
     "sharp": "^0.33.5",
-    "sweetalert2": "^11.15.10"
+    "sweetalert2": "^11.15.10",
+    "uuid": "^11.0.5"
   }
 }

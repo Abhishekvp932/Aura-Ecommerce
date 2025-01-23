@@ -7,6 +7,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <link
       href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800"
@@ -167,7 +168,7 @@
                   <% } %>
                   </div>
                   <p class="bottom-area d-flex px-3">
-                    <a href="#" class="add-to-cart text-center py-2 mr-1"><span>Add to cart <i class="ion-ios-add ml-1"></i></span></a>
+                    <a href="/cart" class="add-to-cart text-center py-2 mr-1"><span>Add to cart <i class="ion-ios-add ml-1"></i></span></a>
                     <a href="#" class="buy-now text-center py-2">Buy now<span><i class="ion-ios-cart ml-1"></i></span></a>
                   </p>
                 </div>
@@ -183,10 +184,10 @@
                   <ul>
                     <li><a href="#">&lt;</a></li>
                     <% for (let i = 1; i <= totalPage; i++) { %>
-                      <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
-                        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                      <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                          <a class="page-link" href="?page=<%= i %>&sort=<%= sortOption %>"><%= i %></a>
                       </li>
-                    <% } %>
+     `             <% } %>                  
                     <li><a href="#">&gt;</a></li>
                   </ul>
                 </div>
@@ -268,8 +269,24 @@
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div>    
                 </form>
+                <div class="sorting-buttons">
+                  <button
+                    id="sort-low-to-high"
+                    class="btn <%= sortOption === 'low-to-high' ? 'btn-primary' : 'btn-secondary' %>"
+                  >
+                    Price:  High to Low
+                  </button>
+                  <button
+                    id="sort-high-to-low"
+                    class="btn <%= sortOption === 'high-to-low' ? 'btn-primary' : 'btn-secondary' %>"
+                    style="margin-top: 20px;"
+                  >
+                    Price:Low to High
+                  </button>
+                </div>
+
               </div>
             </div>
           </div>
@@ -419,5 +436,17 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
     <script src="js/google-map.js"></script>
     <script src="js/main.js"></script>
+
+    <script>
+ 
+  document.getElementById('sort-low-to-high').addEventListener('click', function () {
+    window.location.href = '/shopping?sort=low-to-high';
+  });
+
+  document.getElementById('sort-high-to-low').addEventListener('click', function () {
+    window.location.href = '/shopping?sort=high-to-low';
+  });
+</script>
+    
   </body>
 </html>

@@ -192,23 +192,23 @@
                     <div class="sizes-container">
                         <div class="size-input">
                             <label>S:</label>
-                            <input type="text" name="sizeS">
+                            <input type="text" name="small">
                         </div>
                         <div class="size-input">
                             <label>M:</label>
-                            <input type="text" name="sizeM">
+                            <input type="text" name="medium">
                         </div>
                         <div class="size-input">
                             <label>L:</label>
-                            <input type="text" name="sizeL">
+                            <input type="text" name="large">
                         </div>
                         <div class="size-input">
                             <label style="margin-top: -20px;position: absolute;">XL:</label>
-                            <input type="text" name="sizeXL">
+                            <input type="text" name="XL">
                         </div>
                         <div class="size-input">
                             <label style="margin-left: -20px;">XXL:</label>
-                            <input type="text" name="sizeXXL">
+                            <input type="text" name="XXL">
                         </div>
                     </div>
                 </div>
@@ -283,63 +283,66 @@
                     }
                 
                     function saveCroppedImage(index) {
-                        if (croppers[index]) {
-                            const croppedCanvas = croppers[index].getCroppedCanvas();
-                            
-                            // Create container for image and remove icon
-                            const container = document.createElement('div');
-                            container.style.position = 'relative';
-                            container.style.display = 'inline-block';
-                            container.style.marginRight = '10px';
-                            container.style.marginBottom = '10px';
-                            
-                            // Create and style thumbnail
-                            const thumbnail = document.createElement('img');
-                            thumbnail.src = croppedCanvas.toDataURL();
-                            thumbnail.className = 'thumbnail';
-                            thumbnail.style.width = '100px';
-                            thumbnail.style.height = '100px';
-                            thumbnail.style.objectFit = 'cover';
-                            
-                            // Create and style remove icon
-                            const removeIcon = document.createElement('div');
-                            removeIcon.innerHTML = '×';
-                            removeIcon.style.cssText = `
-                                position: absolute;
-                                top: -8px;
-                                right: -8px;
-                                background-color: red;
-                                color: white;
-                                width: 20px;
-                                height: 20px;
-                                border-radius: 50%;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                cursor: pointer;
-                                font-size: 16px;
-                                font-weight: bold;
-                            `;
-                            
-                            // Add click handler for remove icon
-                            removeIcon.onclick = function() {
-                                container.remove();
-                                // Reset the file input and cropper for this index
-                                const input = document.querySelector(`input[type="file"][onchange*="${index}"]`);
-                                input.value = '';
-                                const cropperContainer = document.querySelector(`#cropperImg${index}`).parentElement;
-                                cropperContainer.style.display = 'none';
-                            };
-                            
-                            // Assemble the elements
-                            container.appendChild(thumbnail);
-                            container.appendChild(removeIcon);
-                            document.getElementById('addedImagesContainer').appendChild(container);
-                            
-                            // Hide the cropper after saving
-                            document.querySelector(`#cropperImg${index}`).parentElement.style.display = 'none';
-                        }
-                    }
+    if (croppers[index]) {
+        croppers[index].getCroppedCanvas().toBlob((blob) => {
+            // Create a new File object with a custom name
+            const croppedFile = new File([blob], `resized-${Date.now()}.png`, { type: blob.type });
+            // Create a container for the thumbnail and remove icon
+            const container = document.createElement('div');
+            container.style.position = 'relative';
+            container.style.display = 'inline-block';
+            container.style.marginRight = '10px';
+            container.style.marginBottom = '10px';
+
+            // Create and style the thumbnail
+            const thumbnail = document.createElement('img');
+            thumbnail.src = URL.createObjectURL(croppedFile);
+            thumbnail.className = 'thumbnail';
+            thumbnail.style.width = '100px';
+            thumbnail.style.height = '100px';
+            thumbnail.style.objectFit = 'cover';
+
+            // Create and style the remove icon
+            const removeIcon = document.createElement('div');
+            removeIcon.innerHTML = '×';
+            removeIcon.style.cssText = `
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                background-color: red;
+                color: white;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: bold;
+            `;
+
+            // Add click handler for the remove icon
+            removeIcon.onclick = function () {
+                container.remove();
+            };
+
+            // Assemble the elements
+            container.appendChild(thumbnail);
+            container.appendChild(removeIcon);
+            document.getElementById('addedImagesContainer').appendChild(container);
+
+            // Replace the file input with the cropped image file
+            const input = document.querySelector(`input[type="file"][onchange*="${index}"]`);
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(croppedFile);
+            input.files = dataTransfer.files;
+
+            // Hide the cropper after saving
+            document.querySelector(`#cropperImg${index}`).parentElement.style.display = 'none';
+        }, 'image/png'); // You can adjust the format as needed
+    }
+}
                 
                     function validateForm() {
                         let isValid = true;
