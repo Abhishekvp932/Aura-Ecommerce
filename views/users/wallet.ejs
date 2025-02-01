@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Page</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/font-awesome.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/elegant-icons.css" type="text/css" />
+    <link rel="stylesheet" href="css/magnific-popup.css" type="text/css" />
+    <link rel="stylesheet" href="css/nice-select.css" type="text/css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/slicknav.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: white;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+        }
+
+        .wallet-card {
+            background: linear-gradient(to right, #dc2626, #0891b2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .card-number {
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+        }
+
+        .balance {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .valid-thru {
+            text-align: right;
+            font-size: 0.8rem;
+        }
+
+        .add-amount {
+            margin-bottom: 2rem;
+        }
+
+        .add-amount input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .add-amount button {
+            background-color: #0080ff;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .transactions {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .transactions th,
+        .transactions td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .transactions th {
+            color: #666;
+            font-weight: normal;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <%-include('../partials/user/header')  %>
+    <header class="header">
+        <div class="logo">Aura-Mens-Store</div>
+        <nav class="nav">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Welcome Your Wallet Page</h1>
+
+        <div class="wallet-card">
+            <div class="card-number">**** **** **** 1234</div>
+            <div class="balance">$500.00</div>
+            <div class="valid-thru">Valid Thru: 12/26</div>
+        </div>
+
+        <div class="add-amount">
+            <input type="text" placeholder="Enter amount">
+            <button>Add Amount</button>
+        </div>
+
+        <table class="transactions">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>$200.00</td>
+                    <td>Credit</td>
+                    <td>2024-08-08</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>$50.00</td>
+                    <td>Debit</td>
+                    <td>2024-08-07</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>$250.00</td>
+                    <td>Bank Transfer</td>
+                    <td>2024-08-06</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <%-include('../partials/user/footer')%>
+</body>
+</html>

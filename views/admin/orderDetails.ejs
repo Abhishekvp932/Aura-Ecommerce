@@ -1,0 +1,201 @@
+<div class="order-details-container">
+  <div class="order-header">
+    <h2>Order Details</h2>
+    <div class="order-info">
+      <p>Order ID: #<%= orderData.orderId %></p>
+      <p>Payment Method: <%= orderData.paymentMethod %></p>
+      <p>Order Date: <%= new Date(orderData.createdOn).toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    }) %></p>
+    </div>
+  </div>
+  <div class="shipping-address">
+    <h3>Shipping Address</h3>
+    <% if(address) { %>
+      <table>
+        <tr>
+          <th>Name:</th>
+          <td><%= address?.name %></td>
+        </tr>
+        <tr>
+          <th>Address Type:</th>
+          <td><%= address?.addressType %></td>
+        </tr>
+        <tr>
+          <th>Land Mark:</th>
+          <td><%= address?.landMark %></td>
+        </tr>
+        <tr>
+          <th>City:</th>
+          <td><%= address?.city %></td>
+        </tr>
+        <tr>
+          <th>Postal Code:</th>
+          <td><%= address?.pincode %></td>
+        </tr>
+        <tr>
+          <th>state:</th>
+          <td><%= address?.state %></td>
+        </tr>
+      </table>
+    <% } %>
+  </div>
+  <div class="order-items">
+    <h3>Order Items</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Quantity</th>
+          <th>Order Date</th>
+          <th>status</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (let i = 0; i < orderData.orderedItems.length; i++) { %>
+          <tr>
+            <td>
+              <div class="item-container">
+                <div class="item-image">
+                  <img src="/uploads/<%= orderData.orderedItems[i].product.productImage[0]%>" alt="<%= orderData.orderedItems[i].product.productName %>">
+                </div>
+                <div class="item-details">
+                  <%= orderData.orderedItems[i].product.productName %>
+                </div>
+              </div>
+            </td>
+            <td><%= orderData.orderedItems[i].quantity %></td>
+            <td><%= new Date(orderData.createdOn).toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+          }) %></td> 
+          <td><%= orderData.orderedItems[i].status %></td>
+          <td>₹<%= orderData.orderedItems[i].price * orderData.orderedItems[i].quantity %></td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+    <p>Total Price <%= orderData.finalAmount %></p>
+  </div>
+  <div class="update-status">
+    <h3>Update Order Status</h3>
+    <div class="status-dropdown">
+      <% if(orderData.status !== 'Delivered') {%>
+      <form action="/admin/updateStatus/<%= orderData._id %>" method="POST">
+        <select name="newStatus">
+          <option value="Pending" <%= orderData.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+          <option value="Shipped" <%= orderData.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+          <option value="Delivered" <%= orderData.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+          <option value="Canceled" <%= orderData.status === 'Canceled' ? 'selected' : '' %>>Canceled</option>
+        </select>
+        <button type="submit" class="update-button">Update Status</button>
+      </form>
+      <% }else{ %>
+        <button class="text-success"  style="background-color: #16a34a;color: white;width: 100px;height: 30px;" disabled>Delivered</button>
+        <% } %>
+    </div>
+  </div>
+</div>
+<style>
+.order-details-container {
+  background-color: #1f2937;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  color: #d1d5db;
+  font-size: 1rem;
+}
+
+.order-header {
+  border-bottom: 1px solid #374151;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.order-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.order-info p {
+  margin-bottom: 0.5rem;
+}
+
+.shipping-address, .order-items, .update-status {
+  margin-bottom: 2rem;
+}
+
+.shipping-address h3, .order-items h3, .update-status h3 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #374151;
+  color: white;
+}
+
+th {
+  font-weight: 500;
+}
+
+.item-container {
+  display: flex;
+  align-items: center;
+  background-color: #2a303c;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.item-image {
+  margin-right: 1.5rem;
+}
+
+.item-image img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+
+.status-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.status-dropdown select {
+  background-color: #2a303c;
+  color: #d1d5db;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-size: 1rem;
+}
+
+.update-button {
+  background-color: #22c55e;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.update-button:hover {
+  background-color: #16a34a;
+}
+</style>

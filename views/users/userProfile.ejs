@@ -264,7 +264,7 @@
                                 <div>
                                   <h2 class="section-title" style="margin-left: 600px;">EDIT ACCOUNT?</h2>
                                  
-                                <a href="/profileEdite/<%=userData._id%>"  class="btn btn-info" style="margin-left: 700px;">Edite</a>
+                                <a href="/profileEdite/<%=userData._id%>"  class="btn btn-info" style="margin-left: 700px;">Edit</a>
                              
                               </div>
                                 <div class="form-grid">
@@ -293,14 +293,12 @@
                 
                                         <div class="form-group">
                                             <label for="password">Password</label>
-                                            <input type="password" id="password" name="password">
+                                            <input type="password" id="password" name="password" value="<%= userData.password %>">
                                         </div>
                                     </div>
-                                </div>
-                
-                                <div class="delete-section">
-                                    <h2 class="section-title">DELETE ACCOUNT?</h2>
-                                    <a  href="/accountDelete/<%=userData._id%>" id="deleteForm" type="button" class="delete-btn" onclick="confirmDelete(event, '<%=userData._id%>')">Delete</a>
+                                 
+                                    <a href="/updatePassword/<%= userData._id %>" class="btn btn-info">Change Password</a>
+                                   
                                 </div>
                             </form>
                         </div>

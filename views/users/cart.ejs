@@ -9,6 +9,14 @@
       }
     </style>
     <title>Aura-Men</title>
+
+
+
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+
+
+
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -100,6 +108,7 @@
         <div class="row">
           <div class="col-md-12 ftco-animate">
             <div class="cart-list">
+             
               <table class="table">
                 <thead class="thead-primary">
                   <tr class="text-center">
@@ -108,83 +117,95 @@
                     <th>Product</th>
                     <th>Price</th>
                     <th>Quantity</th>
-                    <th>size</th>
-                    <th>Total</th>
+                    <th>Size</th>
+                    <th>Total</th>  
                   </tr>
                 </thead>
                 <tbody>
-                  <% cart.forEach(cart => { %>
+                  <% cart.forEach(cartItem => { %>
                     <tr class="text-center">
                       <td class="product-remove">
-                        <% if (cart.productId && cart.productId._id) { %>
-                          <a href="/deleteCart/<%= cartId %>/<%= cart.productId._id %>"><span class="ion-ios-close"></span></a>
+                        <% if (cartItem.productId && cartItem.productId._id) { %>
+                          <a href="/deleteCart/<%= cartId %>/<%= cartItem._id %>">
+                            <span class="ion-ios-close"></span>
+                          </a>
                         <% } else { %>
                           <span class="text-danger">Product not available</span>
                         <% } %>
                       </td>
                   
                       <td class="image-prod">
-                        <img src="/uploads/<%= cart.productId.productImage[0]%>" alt="<%= cart.productId.productName %>" />
+                        <img src="/uploads/<%= cartItem.productId.productImage[0] %>" alt="<%= cartItem.productId.productName %>" />
                       </td>
+                      
                       <td class="product-name">
-                        <h3><%= cart.productId ? cart.productId.productName : 'Unavailable' %></h3>
+                        <h3><%= cartItem.productId ? cartItem.productId.productName : 'Unavailable' %></h3>
                       </td>
                   
                       <td class="price">
-                        <%= cart.productId ? cart.productId.regularPrice : 'N/A' %>
+                        <%= cartItem.productId ? cartItem.productId.regularPrice : 'N/A' %>
                       </td>
-                  
+                   
                       <td class="quantity">
-                        <%= cart.quantity %>
+                        <% if(cartItem.productId.quantity > 0){ %>
+                        <form action="/update-cart-quantity" method="POST" class="d-flex justify-content-center align-items-center">
+                          <input type="hidden" name="productId" value="<%= cartItem._id %>">
+                          <button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-secondary mr-2" style="width: 30px;">-</button>
+                          <input type="text" name="quantity" value="<%= cartItem.quantity %>" max="<%= cartItem.productId.quantity %>" class="form-control text-center" style="width: 60px;" readonly>
+                          <button type="submit" name="action" value="increase"  class="btn btn-sm btn-outline-secondary ml-2"   style="width: 30px;">+</button>
+                        </form>
+                        <% }else{ %>
+                          <span class="badge badge-danger">Out of stock</span>
+                          <% } %>
                       </td>
                   
                       <td class="total">
-                        <%= cart.size%>
+                        <%= cartItem.size %>
                       </td>
-
+            
                       <td class="total">
-                        <%= (cart.productId ? (cart.quantity * cart.productId.regularPrice) : 0) %>
+                        <%= (cartItem.productId ? (cartItem.quantity * cartItem.productId.regularPrice) : 0) %>
                       </td>
+            
                     </tr>
                   <% }) %>
                 </tbody>
               </table>
             </div>
-          </div>
-        </div>
-        <div class="row justify-content-start">
-          <div class="col col-lg-5 col-md-6 mt-5 cart-wrap ftco-animate">
-            <div class="cart-total mb-3">
-              <h3>Cart Totals</h3>
-              <p class="d-flex">
-                <span>Subtotal</span>
-                <span>
-                  <span><%= cart.totalPrice %></span>
-                </span>
-              </p>
-              <p class="d-flex">
-                <span>Delivery</span>
-                <span>$0.00</span>
-              </p>
-              <!-- <p class="d-flex">
-                <span>Discount</span>
-                <span>$3.00</span>
-              </p> -->
-              <hr />
-              <p class="d-flex">
-                <span>Subtotal</span>
-                <span>
+            <div class="row justify-content-start">
+              <div class="col col-lg-5 col-md-6 mt-5 cart-wrap ftco-animate">
+                <div class="cart-total mb-3">
+                  <h3>Cart Totals</h3>
+                  <% 
+                  let subtotal = 0;
+                  cart.forEach((cartItem) => {
+                    subtotal += cartItem.quantity * cartItem.productId.regularPrice;
+                  });
+                  %>
+                  <p class="d-flex">
+                    <span>Subtotal</span>
+                    <span class="ml-auto">₹<%= subtotal.toFixed(2) %></span>
+                  </p>
+                  <p class="d-flex">
+                    <span>Shipping</span>
+                    <span class="ml-auto">Free</span>
+                  </p>
+                  <hr>
+                  <p class="d-flex total-price">
+                    <span>Total</span>
+                    <span class="ml-auto">₹<%= subtotal.toFixed(2) %></span>
+                  </p>
+                </div>
+                <p class="text-center">
+                  <a href="/checkout" class="btn btn-primary py-3 px-4">Proceed to Checkout</a>
+                </p>
                 
-                </span>
-              </p>
-            </div>
-            <p class="text-center">
-              <a href="/checkout" class="btn btn-primary py-3 px-4"
-                >Proceed to Checkout</a
-              >
-            </p>
+              </div>
+            </div>  
+
           </div>
         </div>
+       
       </div>
     </section>
 
@@ -231,5 +252,35 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
     <script src="js/google-map.js"></script>
     <script src="js/main.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const quantityInput = document.querySelector("#quantity");
+        const increaseButton = document.querySelector("#increase");
+        const availableStock = parseInt(document.querySelector("#stock").innerText); // Assuming you display stock count
+    
+        increaseButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          const currentQuantity = parseInt(quantityInput.value);
+    
+          if (currentQuantity < availableStock) {
+            quantityInput.value = currentQuantity + 1;
+          } else {
+            alert("You cannot add more than the available stock");
+          }
+        });
+      });
+    </script>
+    <script>
+
+function showPopup() {
+  Swal.fire({
+            title: 'This much quantity is not available',
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        })
+  }
+    </script>
+    
   </body>
 </html>

@@ -2,6 +2,13 @@
 <html lang="en">
   <head>
     <title>Aura-Men</title>
+
+
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+
+
+
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -301,6 +308,10 @@ select.form-control {
                            
                         <!-- Main Content -->
                         <div class="col-md-9">
+                          <% if(msg.length>0){ %>
+
+                            <h4 class="text-danger text-center"><%=msg%></h4>
+                          <%}%>
                             <div class="form-section">
                                 <div class="address-form">
                                     <h2 class="section-title">ADD ADDRESS</h2>
@@ -315,8 +326,8 @@ select.form-control {
                                                 <label for="state">State</label>
                                                 <select id="state" name="state" class="form-control">
                                                     <option value="">Select State</option>
-                                                    <option value="NY">New York</option>
-                                                    <option value="CA">California</option>
+                                                    <option value="kerala">Kerala</option>
+                                                    <option value="thamil nadu">Tamil Nadu</option>
                                                     <!-- Add more states as needed -->
                                                 </select>
                                             </div>
@@ -327,7 +338,7 @@ select.form-control {
                                             </div>
                         
                                             <div class="form-group">
-                                                <label for="apartment">Apartment (optional)</label>
+                                                <label for="apartment">Apartment</label>
                                                 <input type="text" id="apartment" name="landMark" class="form-control" placeholder="Apartment, suite, unit etc.">
                                             </div>
                         
@@ -410,35 +421,95 @@ select.form-control {
     <script src="js/main.js"></script>
 
     <script>
-      $(document).ready(function () {
-        var quantitiy = 0;
-        $(".quantity-right-plus").click(function (e) {
-          // Stop acting like a button
-          e.preventDefault();
-          // Get the field name
-          var quantity = parseInt($("#quantity").val());
-
-          // If is not undefined
-
-          $("#quantity").val(quantity + 1);
-
-          // Increment
-        });
-
-        $(".quantity-left-minus").click(function (e) {
-          // Stop acting like a button
-          e.preventDefault();
-          // Get the field name
-          var quantity = parseInt($("#quantity").val());
-
-          // If is not undefined
-
-          // Increment
-          if (quantity > 0) {
-            $("#quantity").val(quantity - 1);
+      document.addEventListener('DOMContentLoaded', function() {
+          const form = document.querySelector('form[action="/addressAdd"]');
+          const fields = {
+              name: document.getElementById('name'),
+              state: document.getElementById('state'),
+              street: document.getElementById('street'),
+              city: document.getElementById('city'),
+              postcode: document.getElementById('postcode'),
+              phone: document.getElementById('phone'),
+              apartment:document.getElementById('apartment')
+          };
+      
+          function validateField(field, errorMessage) {
+              if (!field.value.trim()) {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Validation Error',
+                      text: errorMessage,
+                      confirmButtonColor: '#82ae46'
+                  });
+                  field.focus();
+                  return false;
+              }
+              return true;
           }
+     function validatePostCode(pincodeField, errorMessage) {
+    const trimmedPincode = pincodeField.value.trim();
+    const pincodeRegex = /^\d{6}$/; 
+
+    if (!pincodeRegex.test(trimmedPincode)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Enter Valid Pincode',
+            text: errorMessage,
+            confirmButtonColor: '#82ae46'
         });
+
+        pincodeField.value = ""; 
+        pincodeField.focus();
+        return false;
+    }
+
+    return true;
+}
+
+          function validatePhone(phoneField, errorMessage) {
+              const phoneRegex = /^[0-9]{10}$/;
+              if (!phoneRegex.test(phoneField.value.trim())) {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Invalid Phone Number',
+                      text: errorMessage,
+                      confirmButtonColor: '#82ae46'
+                  });
+                  phoneField.focus();
+                  return false;
+              }
+              return true;
+          }
+      
+          form.addEventListener('submit', function(event) {
+              event.preventDefault();
+      
+              // Validate required fields
+              const requiredValidations = [
+                  { field: fields.name, message: 'Please enter your name' },
+                  { field: fields.state, message: 'Please select a state' },
+                  { field: fields.street, message: 'Please enter your street address' },
+                  { field: fields.city, message: 'Please enter your city' },
+                  { field: fields.postcode, message: 'Please enter your postcode' },
+                  {field: fields.apartment,message:'please enter your apartment address'}
+                 
+              ];
+      
+              for (let validation of requiredValidations) {
+                  if (!validateField(validation.field, validation.message)) return;
+              }
+      
+          if(!validatePostCode(fields.postcode,'Please enter valid post code')) return
+
+              if (!validatePhone(fields.phone, 'Please enter a valid 10-digit phone number')) return;
+      
+            
+              const altPhone = document.getElementById('altphone');
+              if (altPhone.value.trim() && !validatePhone(altPhone, 'Please enter a valid 10-digit alternative phone number')) return;
+    
+              form.submit();
+          });
       });
-    </script>
+      </script>
   </body>
 </html>

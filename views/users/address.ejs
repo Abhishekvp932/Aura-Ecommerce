@@ -344,8 +344,8 @@
                             <div class="form-section">
                                 <h2 class="section-title">MY ADDRESSES</h2>
                                 <div class="addresses-list">
-                                  <% if (addres && addres.length > 0) { %>
-                                    <% addres[0].addresses.forEach((addr) => { %>
+                                  <% if (addres && addres.addresses && addres.addresses.length > 0) { %>
+                                    <% addres.addresses.forEach((addr) => { %>
                                       <div class="address-card">
                                         <div class="address-info">
                                           <ul>
@@ -354,6 +354,7 @@
                                               <strong>Street Address:</strong> <%= addr.addressType %><br>
                                               <strong>Landmark:</strong> <%= addr.landMark %><br>
                                               <strong>City:</strong> <%= addr.city %><br>
+                                              <strong>state:</strong><%= addr.state %><br>
                                               <strong>Pincode:</strong> <%= addr.pincode %><br>
                                               <strong>Phone:</strong> <%= addr.phone %><br>
                                               <strong>Alt Phone:</strong> <%= addr.altPhone %><br>

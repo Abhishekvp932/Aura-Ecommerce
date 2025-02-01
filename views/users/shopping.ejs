@@ -53,6 +53,56 @@
             margin: 0 10px;
             color: #151414;
         }
+        
+        .search-wrapper {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .search-input-group {
+            display: flex;
+            border: 2px solid #6c757d;
+            border-radius: 50px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .search-input {
+            flex-grow: 1;
+            border: none;
+            padding: 12px 15px;
+            padding-left: 40px;
+            font-size: 16px;
+        }
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(0,123,255,0.1);
+        }
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            pointer-events: none;
+        }
+        .search-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 0 50px 50px 0;
+            transition: background-color 0.3s ease;
+        }
+        .search-btn:hover {
+            background-color: #0056b3;
+        }
+        .search-input-group:focus-within {
+            border-color: #007bff;
+        }
+        .search-input-group:focus-within .search-icon {
+            color: #007bff;
+        }
+    
     </style>
   </head>
   <body class="goto-here">
@@ -114,7 +164,25 @@
     </div>
 
     <section class="ftco-section bg-light">
+      <div>
       
+        <div class="search-wrapper">
+            <form action="/search" method="post" class="search-input-group">
+                <i class="bi bi-search search-icon"></i>
+                <input 
+                    type="search" 
+                    name="search" 
+                    class="search-input" 
+                    placeholder="Search products..."
+                    value=""
+                >
+                <button type="submit" class="btn btn-primary search-btn">
+                    <i class="bi bi-search me-2"></i>Search
+                </button>
+            </form>
+        </div>
+    </div>
+    </div>
       <div class="container">
         <div class="breadcrumbs">
           <a href="/">Home</a>
@@ -142,16 +210,15 @@
                     </div>
                     <div class="rating">
                       <p class="text-right mb-0">
-                        <a href="#"><span class="ion-ios-star-outline"></span></a>
-                        <a href="#"><span class="ion-ios-star-outline"></span></a>
-                        <a href="#"><span class="ion-ios-star-outline"></span></a>
-                        <a href="#"><span class="ion-ios-star-outline"></span></a>
-                        <a href="#"><span class="ion-ios-star-outline"></span></a>
+                        <% for(let i=0;i<5;i++) { %>
+                          <i class="bi <%= i <= product.rating ? 'bi-star-fill' : 'bi-star' %> text-warning"></i>
+                        <% } %>
                       </p>
                     </div>
                   </div>
                   <h3><a href="#"><%= product[i].productName %></a></h3>
                   <div class="pricing">
+                    <% if(product[i].quantity > 0) { %>
                     <% if(offer){ %>
                       <% if(product[i].regularPrice>offer.minPrice && product[i].regularPrice<offer.maxPrice){ %>
                           <p class="price">
@@ -161,11 +228,14 @@
                               </span>
                           </p>
                       <% }else{ %>
-                          <p class="price"><span>Price: <%=product[i].regularPrice%></span></p>
+                          <p class="price"><span>Price:₹ <%=product[i].regularPrice%></span></p>
                       <% } %>
                   <% }else{ %>
-                      <p class="price"><span>Price:<%=product[i].regularPrice%></span></p>
+                      <p class="price"><span>Price:₹<%=product[i].regularPrice%></span></p>
                   <% } %>
+                  <% }else{ %>
+                    <span class="badge badge-danger">out of stock </span>
+                    <%  } %>
                   </div>
                   <p class="bottom-area d-flex px-3">
                     <a href="/cart" class="add-to-cart text-center py-2 mr-1"><span>Add to cart <i class="ion-ios-add ml-1"></i></span></a>
@@ -187,7 +257,7 @@
                       <li class="page-item <%= i === currentPage ? 'active' : '' %>">
                           <a class="page-link" href="?page=<%= i %>&sort=<%= sortOption %>"><%= i %></a>
                       </li>
-     `             <% } %>                  
+                <% } %>                  
                     <li><a href="#">&gt;</a></li>
                   </ul>
                 </div>

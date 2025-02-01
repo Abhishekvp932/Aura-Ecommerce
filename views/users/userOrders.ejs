@@ -2,6 +2,13 @@
 <html lang="en">
   <head>
     <title>Aura-Men</title>
+
+
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+
+
+
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -404,32 +411,45 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                          <% order.forEach(order => { %>
-                                            <tr>
-                                                <td><%= order.orderId %></td>
-                                                <td><%= order.totalPrice%></td>
-                                                <td><%= new Date(order.createdOn).toLocaleDateString('en-US', { 
-                                                  year: 'numeric', 
-                                                  month: 'long', 
-                                                  day: 'numeric' 
-                                              }) %></td> 
-                                                <td>
-                                                    <span class="badge badge-danger"><%= order.status %></span>
-                                                </td>
-                                                <td>
-                                                    <div class="order-product-images">  
-                                                      <% for(let i=0;i<order.orderedItems.length;i++){ %>
-                                                        <img src="<%= order.orderedItems[i].product.productImage[0] %>" alt="Product 3" class="img-fluid" style="width: 70px; height: 70px; object-fit: cover;margin-left: 20px;">
-                                                      <% } %>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-sm" style="background-color: #82ae46; color: white;">
-                                                        <i class="bi bi-arrow-right"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
+                                          <% if (order && order.length > 0) { %>
+                                            <% order.forEach(orders => { %>
+                                                <tr>
+                                                    <td><%= orders.orderId %></td>
+                                                    <td><%= orders.finalAmount %></td>
+                                                    <td><%= new Date(orders.createdOn).toLocaleDateString('en-US', { 
+                                                          year: 'numeric', 
+                                                          month: 'long', 
+                                                          day: 'numeric' 
+                                                      }) %></td>
+                                                    <td>
+                                                      <% if(orders.status==='Delivered') { %>
+                                                        <span class="badge badge-success"><%= orders.status %></span>
+                                                        <% } else if(orders.status === 'Shipped') { %>
+                                                          <span class="badge badge-warning"><%= orders.status %></span>
+                                                          <% }else{ %>
+                                                            <span class="badge badge-danger"><%= orders.status %></span>
+                                                            <% } %>
+
+                                                    </td>
+                                                    <td>
+                                                        <div class="order-product-images">
+                                                            <% for (let i = 0; i < orders.orderedItems.length; i++) { %>
+                                                                <img src="<%= orders.orderedItems[i].product.productImage[0] %>" alt="Product" class="img-fluid" style="width: 70px; height: 70px; object-fit: cover; margin-left: 20px;">
+                                                            <% } %>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-sm" style="background-color: #82ae46; color: white;">
+                                                            <a href="/orderSummary/<%= orders._id%>"><i class="bi bi-arrow-right"></i></a>
+                                                        </button>
+                                                    </td>
+                                                </tr>
                                             <% }) %>
+                                        <% } else { %>
+                                            <tr>
+                                                <td colspan="7">No orders found.</td>
+                                            </tr>
+                                        <% } %>                                                                             
                                             <!-- You can duplicate this tr for more orders -->
                                         </tbody>
                                     </table>

@@ -19,7 +19,7 @@ router.post('/signup-otp',userController.sendOTP)
 router.get('/verifyEmail',userAuth,userController.signupEmail);
 router.get('/login',userAuth,userController.loadLogin);
 router.post('/signup-details',userController.signup)
-router.get('/',userController.loadHome);
+router.get('/',userCheck,userController.loadHome);
 router.get('/signup',userAuth,userController.loadSignup);
 router.get('/pageNotFound',userAuth,userController.pageNotFound);
 router.get('/repassEmail',userAuth,userController.changePassEmail);
@@ -29,26 +29,37 @@ router.post('/repassOtp-verify',userController.forgotOtpVerify);
 router.get('/changePassword',userAuth,userController.loadchangePassword);
 router.post('/updatePassword',userController.updateOldPassword);
 router.get('/shopping',userCheck,productController.shoppingPage);
-router.get('/product-details/:id',productController.loadProductDetails);
-router.get('/category/:id',productController.eachCategory)
-router.get('/userProfile',userController.loadUserProfile);
-router.get('/address',userController.loadAddress);
-router.get('/addAddress',userController.loadAddAddress);
+router.get('/product-details/:id',userCheck,productController.loadProductDetails);
+router.get('/category/:id',userCheck,productController.eachCategory)
+router.get('/userProfile',userCheck,userController.loadUserProfile);
+router.get('/address',userCheck,userController.loadAddress);
+router.get('/addAddress',userCheck,userController.loadAddAddress);
 router.post('/addressAdd',userController.addressAdd);
-router.get('/addressEdite/:id',userController.loadEditeAddress);
+router.get('/addressEdite/:id',userCheck,userController.loadEditeAddress);
 router.post('/editAddress/:id',userController.editAddress)
 router.get('/addressDelete/:id',userController.deleteAddress);
-router.get('/userOrders',orderController.loadOrdersPage);
-router.get('/profileEdite/:id',userController.profileEdite)
+router.get('/userOrders',userCheck,orderController.loadOrdersPage);
+router.get('/profileEdite/:id',userCheck,userController.profileEdite)
 router.post('/editeProfile/:id',userController.editeProfile);
-router.get('/accountDelete/:id',userController.deleteAccount);
 router.post('/addToCart/:productId',cartController.addToCart);
-router.get('/cart',cartController.loadCart);
+router.get('/cart',userCheck,cartController.loadCart);
 router.get('/deleteCart/:cartId/:productId',cartController.deleteCart)
 router.post('/review/:id',productController.reviewAdding);
-router.get('/checkout',checkoutController.loadCheckout);
-router.get('/payments',checkoutController.loadPaymentSuccess);
+router.get('/checkout',userCheck,checkoutController.loadCheckout);
+router.get('/payments',userCheck,checkoutController.loadPaymentSuccess);
 router.post('/placeOrder',checkoutController.placeOrder);
+
+router.get('/orderSummary/:id',userCheck,orderController.orderSummary);
+router.get('/cancel/:id/product/:productId',orderController.orderCancel);
+router.post('/search',productController.searchProducts);
+router.get('/updatePassword/:id',userController.updatePassword);
+router.post('/changePassword',userController.changePassword)
+router.post('/update-cart-quantity',cartController.updateCart);
+
+router.get('/wallet',userCheck,userController.loadWallet);
+
+
+
 
 
 
@@ -57,6 +68,10 @@ router.get('/auth/google',passport.authenticate('google'));
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/login'}),(req,res)=>{
 
          req.session.userId = req.user._id
+
+
+         req.session.userEmail = req.user.email;
+    
     req.session.userLoged=true
     res.redirect('/');
 })

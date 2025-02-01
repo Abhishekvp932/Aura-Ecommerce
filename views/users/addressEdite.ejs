@@ -303,56 +303,55 @@ select.form-control {
                             <div class="form-section">
                                 <div class="address-form">
                                     <h2 class="section-title">EDIT ADDRESS</h2>
-                                    <form action="/editAddress/<%= findAddress._id%>" method="post">
+                                    <form action="/editAddress/<%=address._id%>" method="post">
                                         <div class="form-grid">
                                             <div class="form-group">
                                                 <label for="name">Name</label>
-                                                <input type="text" id="name" name="name" class="form-control" value="<%=findAddress.address.name%>">
+                                                <input type="text" id="name" name="name" class="form-control" value="<%=address.name%>">
                                             </div>
                         
                                             <div class="form-group">
                                                 <label for="state">State</label>
                                                 <select id="state" name="state" class="form-control">
                                                     <option value="">Select State</option>
-                                                    <option value="NY">New York</option>
-                                                    <option value="CA">California</option>
+                                                    <option value="kerala">kerala</option>
+                                                    <option value="tamil nadu">Tamil Nadu</option>
                                                     <!-- Add more states as needed -->
                                                 </select>
                                             </div>
                         
                                             <div class="form-group">
                                                 <label for="street">Street Address</label>
-                                                <input type="text" id="street" name="addressType" class="form-control" placeholder="House number and street name" value="<%=findAddress.address.addressType%>">
+                                                <input type="text" id="street" name="addressType" class="form-control" placeholder="House number and street name" value="<%=address.addressType%>">
                                             </div>
                         
                                             <div class="form-group">
                                                 <label for="apartment">Apartment (optional)</label>
-                                                <input type="text" id="apartment" name="landMark" class="form-control" placeholder="Apartment, suite, unit etc." value="<%=findAddress.address.landMark%>">
+                                                <input type="text" id="apartment" name="landMark" class="form-control" placeholder="Apartment, suite, unit etc." value="<%=address.landMark%>">
                                             </div>
                         
                                             <div class="form-group">
                                                 <label for="city">Town / City</label>
-                                                <input type="text" id="city" name="city" class="form-control" value="<%=findAddress.address.city%>">
+                                                <input type="text" id="city" name="city" class="form-control" value="<%=address.city%>">
                                             </div>
                         
                                             <div class="form-group">
                                                 <label for="postcode">Postcode / ZIP</label>
-                                                <input type="text" id="postcode" name="pincode" class="form-control" value="<%=findAddress.address.pincode%>">
+                                                <input type="text" id="postcode" name="pincode" class="form-control" value="<%=address.pincode%>">
                                             </div>
                         
                                             <div class="form-group">
                                                 <label for="phone">Phone</label>
-                                                <input type="tel" id="phone" name="phone" class="form-control" value="<%=findAddress.address.phone%>">
+                                                <input type="tel" id="phone" name="phone" class="form-control" value="<%=address.phone%>">
                                             </div>
                         
                                             <div class="form-group">
                                                 <label for="altphone">Alternative Phone</label>
-                                                <input type="tel" id="altphone" name="altPhone" class="form-control" value="<%=findAddress.address.altPhone%>">
+                                                <input type="tel" id="altphone" name="altPhone" class="form-control" value="<%=address.altPhone%>">
                                             </div>
                                         </div>
                         
                                         <button type="submit" class="btn btn-success">
-                                            <i class="bi bi-plus-circle"></i>
                                            submit
                                         </button>
                                     </form>

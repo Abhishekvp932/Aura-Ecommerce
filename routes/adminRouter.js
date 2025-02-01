@@ -42,4 +42,8 @@ router.get('/offerUnList/:id',adminCheck,offerController.offerUnList);
 router.get('/editeOffer/:id',adminCheck,offerController.editeOffer);
 router.post('/offerEdite/:id',adminCheck,offerController.offerEdite);
 
+
+router.get('/orderDetails/:id',adminCheck,orderController.loadOrderDetails);
+router.get('/cancelOrder/:id',orderController.cancelOrder);
+router.post('/updateStatus/:id',orderController.updateStatus);
 module.exports = router

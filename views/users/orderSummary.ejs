@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+
+    <title>Aura-Men</title>
+
+
+    <style>
+        body {
+          font-family: "Open Sans", sans-serif;
+          background-color: #f8f9fa;
+        }
+  
+        .container {
+          margin-top: 50px;
+        }
+  
+        .tracking-header {
+          text-align: center;
+          margin-bottom: 30px;
+        }
+  
+        .tracking-header h1 {
+          font-size: 26px;
+          color: #333;
+        }
+  
+        .tracking-header p {
+          font-size: 14px;
+          color: #666;
+        }
+  
+        .tracking-progress {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 40px;
+        }
+  
+        .tracking-step {
+          text-align: center;
+        }
+  
+        .tracking-step .icon {
+          width: 50px;
+          height: 50px;
+          margin: 0 auto;
+          background: #ddd;
+          border-radius: 50%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 18px;
+          color: white;
+        }
+  
+        .tracking-step.active .icon {
+          background: #007bff;
+        }
+  
+        .tracking-step.completed .icon {
+          background: #28a745;
+        }
+  
+        .tracking-step p {
+          margin-top: 10px;
+          font-size: 14px;
+          color: #333;
+        }
+  
+        .tracking-line {
+          flex-grow: 1;
+          height: 4px;
+          background: #ddd;
+          position: relative;
+        }
+  
+        .tracking-line.active {
+          background: #007bff;
+        }
+  
+        .tracking-line.completed {
+          background: #28a745;
+        }
+  
+        .order-details {
+          background: white;
+          border-radius: 8px;
+          padding: 20px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+  
+        .order-details h2 {
+          font-size: 20px;
+          color: #333;
+          margin-bottom: 20px;
+        }
+  
+        .order-info {
+          margin-bottom: 10px;
+        }
+  
+        .order-info span {
+          font-weight: bold;
+        }
+  
+        .product-list {
+          margin-top: 15px;
+        }
+  
+        .product-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 15px;
+        }
+  
+        .product-image {
+          width: 80px;
+          height: 80px;
+          margin-right: 15px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          overflow: hidden;
+        }
+  
+        .product-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+  
+        .product-details {
+          font-size: 14px;
+          color: #666;
+        }
+  
+        .product-details span {
+          display: block;
+          color: #333;
+          font-weight: bold;
+        }
+      </style>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="/css/open-iconic-bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/animate.css" />
+
+    <link rel="stylesheet" href="/css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="/css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="/css/magnific-popup.css" />
+
+    <link rel="stylesheet" href="/css/aos.css" />
+
+    <link rel="stylesheet" href="/css/ionicons.min.css" />
+
+    <link rel="stylesheet" href="/css/bootstrap-datepicker.css" />
+    <link rel="stylesheet" href="/css/jquery.timepicker.css" />
+
+    <link rel="stylesheet" href="/css/flaticon.css" />
+    <link rel="stylesheet" href="/css/icomoon.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body class="goto-here">
+    <div class="py-1 bg-black">
+      <div class="container">
+        <div
+          class="row no-gutters d-flex align-items-start align-items-center px-md-0"
+        >
+          <div class="col-lg-12 d-block">
+            <div class="row d-flex">
+              <div class="col-md pr-4 d-flex topper align-items-center">
+                <div
+                  class="icon mr-2 d-flex justify-content-center align-items-center"
+                >
+                  <span class="icon-phone2"></span>
+                </div>
+                <span class="text">+ 1235 2355 98</span>
+              </div>
+              <div class="col-md pr-4 d-flex topper align-items-center">
+                <div
+                  class="icon mr-2 d-flex justify-content-center align-items-center"
+                >
+                  <span class="icon-paper-plane"></span>
+                </div>
+                <span class="text">youremail@email.com</span>
+              </div>
+              <div
+                class="col-md-5 pr-4 d-flex topper align-items-center text-lg-right"
+              >
+                <span class="text"
+                  >3-5 Business days delivery &amp; Free Returns</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <%-include('../partials/user/header.ejs')%>
+    <!-- END nav -->
+
+    <div
+      class="hero-wrap hero-bread"
+      style="background-image: url('/images/bg_6.jpg')"
+    >
+      <div class="container">
+        <div
+          class="row no-gutters slider-text align-items-center justify-content-center"
+        >
+          <div class="col-md-9 ftco-animate text-center">
+            <p class="breadcrumbs">
+              <span class="mr-2"><a href="index.html">Home</a></span>
+              <span>Checkout</span>
+            </p>
+            <h1 class="mb-0 bread">Tracking</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="container">
+        <!-- Tracking Header -->
+        <div class="tracking-header">
+          <h1>Order Tracking</h1>
+          <p>Track the progress of your order with ID: <strong><%= orders.orderId%></strong></p>
+        </div>
+  
+        <!-- Tracking Progress -->
+        <div class="tracking-progress">
+          <!-- Order Placed -->
+          <div class="tracking-step <%= orders.status === 'Order Placed' || orders.status !== 'Pending' ? 'completed' : '' %>">
+            <div class="icon">✔</div>
+            <p>Order Placed</p>
+          </div>
+          <div class="tracking-line <%= ['Order Processed', 'Shipped', 'Out for Delivery', 'Delivered'].includes(orders.status) ? 'completed' : '' %>"></div>
+        
+          <!-- Order Processed -->
+          <div class="tracking-step <%= ['Order Processed', 'Shipped', 'Out for Delivery', 'Delivered'].includes(orders.status) ? 'completed' : '' %>">
+            <div class="icon">✔</div>
+            <p>Order Processed</p>
+          </div>
+          <div class="tracking-line <%= ['Shipped', 'Out for Delivery', 'Delivered'].includes(orders.status) ? 'completed' : '' %>"></div>
+        
+          <!-- Shipped -->
+          <div class="tracking-step <%= ['Shipped', 'Out for Delivery', 'Delivered'].includes(orders.status) ? 'completed active' : '' %>">
+            <div class="icon">🚚</div>
+            <p>Shipped</p>
+          </div>
+          <div class="tracking-line <%= ['Out for Delivery', 'Delivered'].includes(orders.status) ? 'completed' : '' %>"></div>
+        
+          <!-- Out for Delivery -->
+          <div class="tracking-step <%= ['Out for Delivery', 'Delivered'].includes(orders.status) ? 'completed' : '' %>">
+            <div class="icon">📦</div>
+            <p>Out for Delivery</p>
+          </div>
+          <div class="tracking-line <%= orders.status === 'Delivered' ? 'completed' : '' %>"></div>
+        
+          <!-- Delivered -->
+          <div class="tracking-step <%= orders.status === 'Delivered' ? 'completed' : '' %>">
+            <div class="icon">✔</div>
+            <p>Delivered</p>
+          </div>
+        </div>        
+        <!-- Order Details -->
+        <div class="order-details">
+          <h2>Order Details</h2>
+          <div class="order-info">
+            <p><span>Order ID:</span><%= orders.orderId%></p>
+            <p><span>Order Date:</span><%= new Date(orders.createdOn).toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            }) %> </p>
+            <% if(address) {%>
+            <p><span>Delivery Address:</span> <br> <span><%= address.phone %> <br> </span><span><%= address.name %> <br> </span><span><%= address.landMark %></span><br><span><%= address.city %></span><br> <span> <%= address.state %></span><br> <span><%= address.pincode %></span></p>
+            <% } %>
+          </div>
+  
+          <h3>Products</h3>
+          <div class="product-list">
+            <% for(let i=0;i<orders.orderedItems.length;i++) { %>
+            <div class="product-item">
+             
+              <div class="product-image">
+              <a href="/product-details/<%=orders.orderedItems[i].product._id %>">
+
+                <img src="/uploads/<%= orders.orderedItems[i].product.productImage[i]%>" alt="Product 1" />
+              </a>
+              </div>
+              <div class="product-details">
+                <span>Product <%= i+1 %></span>
+               <span>Product Name:<%= orders.orderedItems[i].product.productName %></span>
+               <span>Quantity:<%= orders.orderedItems[i].quantity %></span>
+              <span> Product Price: <%= orders.orderedItems[i].price%></span>
+              <% if(orders.status === 'Delivered'){ %>
+                <a href="#" class="btn btn-info" style="color: white;">Return</a> 
+                <% }else if(orders.orderedItems[i].status !== 'Cancelled' && orders.status !== 'Cancelled'){ %>
+                  <span style="margin-left: 0px;">
+                    <a href="/cancel/<%= orders._id %>/product/<%= orders.orderedItems[i]._id %>" 
+                      class="btn btn-danger" 
+                      style="color: white;" 
+                      onclick="return confirmBlock(event)">
+                     Cancel
+                   </a>                                      
+                  </span>
+                  <% } else { %>
+                    <span class="text-danger">Canceled</span>
+                    <% } %>
+              </div>
+            </div>
+            <% } %>
+          </div>
+          <span>Total: <%= orders.finalAmount %></span>     
+        </div>
+      </div>
+    <!-- .section -->
+
+    <%-include('../partials/user/footer.ejs')%>
+
+    <!-- loader -->
+    <div id="ftco-loader" class="show fullscreen">
+      <svg class="circular" width="48px" height="48px">
+        <circle
+          class="path-bg"
+          cx="24"
+          cy="24"
+          r="22"
+          fill="none"
+          stroke-width="4"
+          stroke="#eeeeee"
+        />
+        <circle
+          class="path"
+          cx="24"
+          cy="24"
+          r="22"
+          fill="none"
+          stroke-width="4"
+          stroke-miterlimit="10"
+          stroke="#F96D00"
+        />
+      </svg>
+    </div>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/jquery-migrate-3.0.1.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/jquery.easing.1.3.js"></script>
+    <script src="/js/jquery.waypoints.min.js"></script>
+    <script src="/js/jquery.stellar.min.js"></script>
+    <script src="/js/owl.carousel.min.js"></script>
+    <script src="/js/jquery.magnific-popup.min.js"></script>
+    <script src="/js/aos.js"></script>
+    <script src="/js/jquery.animateNumber.min.js"></script>
+    <script src="/js/bootstrap-datepicker.js"></script>
+    <script src="/js/scrollax.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
+    <script src="/js/google-map.js"></script>
+    <script src="/js/main.js"></script>
+
+    <script>
+       function confirmBlock(event) {
+        event.preventDefault();
+        const href = event.target.href;
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Are sure to cancel this order",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, cancel!'
+        }).then((result) => {
+            if (result.isConfirmed) { 
+              window.location.href = href;
+            }
+        });
+        return false;
+    }
+    </script>
+  </body>
+</html>

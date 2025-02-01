@@ -5,6 +5,7 @@ const Products = require('../../models/productSchema');
 const Category = require('../../models/categorySchema');
 const offers = require('../../models/offerSchema');
 const Address = require('../../models/addressSchema');
+const Product = require('../../models/productSchema');
 
 const signupEmail = async (req,res)=>{
     try {
@@ -228,8 +229,10 @@ const pageNotFound = async(req,res)=>{
 const loadHome = async (req,res)=>{
     try {
       const userLoged = req.session.userLoged
+const product = await Product.find()
 
-      res.render('home',{ userLoged });
+
+      res.render('home',{ userLoged ,product});
     } catch (error) {
         console.log("home page not found")
         res.status(500).send('server error')
@@ -404,12 +407,17 @@ const loadUserProfile = async(req,res)=>{
 const loadAddress = async(req,res)=>{
     try {
         const userLoged = req.session.userLoged
-        const userId = req.session.userId
-        const addres = await Address.find({userId: userId});
+       const email =  req.session.userEmail 
+       console.log(email)
+       const user = await User.findOne({email:email})
+       console.log(user)
+        const addres = await Address.findOne({userId:user._id}).populate('addresses')
+        console.log('user address',addres)
         return res.render('address',{
             userLoged,
             addres:addres
         });
+        console.log(addres)
     } catch (error) {
         console.log('address page not found',error);
         res.status(500).send('server error');
@@ -432,22 +440,22 @@ const loadAddAddress = async(req,res)=>{
 }
 const addressAdd = async(req,res)=>{
     try {
-         const {name, addressType,landMark,city,pincode,phone,altPhone} = req.body
+         const {name, addressType,landMark,city,pincode,phone,altPhone,state} = req.body
          console.log('Request body:', req.body);
 
-         if(name == ''|| addressType==''||landMark==''||city==''||pincode==''||phone==''||altPhone==''){
+         if(name == ''|| addressType==''||landMark==''||city==''||pincode==''||phone==''||altPhone==''||state==''){
             req.flash('err','All field required');
             return res.redirect('/addAddress');
          }
 
          const email = req.session.userEmail
          const user = await User.findOne({email:email})
-        //  const address = await Address.findOne({userId:user._id})
         const addressData = {  
             name: name,
             addressType: addressType,
             landMark: landMark,
             city: city,
+            state:state,
             pincode: pincode,
             phone: phone,
             altPhone: altPhone,
@@ -469,10 +477,15 @@ const loadEditeAddress = async(req,res)=>{
     try {
         const userLoged = req.session.userLoged
         const id = req.params.id
-        const findAddress = await Address.findById(id);
-        console.log(findAddress);
-        
-        return res.render('addressEdite',{findAddress,userLoged});
+        console.log('edite address id is',id)
+
+        const addressDocument = await Address.findOne({
+            "addresses._id": id,
+          });
+    
+          const address = addressDocument.addresses.find((item) => item._id.toString() === id);
+
+        return res.render('addressEdite',{address,userLoged});
     } catch (error) {
         console.log('edite address page not found',error);
         res.status(500).send('server error');
@@ -481,20 +494,27 @@ const loadEditeAddress = async(req,res)=>{
 }
 const editAddress = async(req,res)=>{
     try {
-        const {name,addressType,landMark,city,pincode,phone,altPhone} = req.body
+        const {name,addressType,landMark,city,pincode,phone,altPhone,state} = req.body
+        const email = req.session.userEmail
         const id = req.params.id
-        const newData ={
-            name:name,
-            addressType:addressType,
-            landMark:landMark,
-            city:city,
-            pincode:pincode,
-            phone:phone,
-            altPhone:altPhone
-        }
-        console.log(newData);
+        const user = await User.findOne({email:email})
+        console.log(id)
+        const addressData = {  
+            name: name,
+            state:state,
+            addressType: addressType,
+            landMark: landMark,
+            city: city,
+            pincode: pincode,
+            phone: phone,
+            altPhone: altPhone,
+        };
         
-         await Address.updateOne({_id:id},{$set:{addresses:newData}})
+        await Address.updateOne(
+            { userId: user._id },
+            { $set: { addresses: addressData } },
+            { upsert: true } 
+        );
         res.redirect('/address');
 
     } catch (error) {
@@ -506,7 +526,13 @@ const editAddress = async(req,res)=>{
 const deleteAddress = async(req,res)=>{
     try {
         const id = req.params.id
-        await Address.findByIdAndDelete(id)
+        console.log('delete address id is',id)
+      
+        const result = await Address.updateOne(
+            { "addresses._id": id }, 
+            { $pull: { addresses: { _id: id } } } 
+          );
+      console.log('add data',result)
         res.redirect('/address');
     } catch (error) {
         console.log('address deleting error',error);
@@ -550,29 +576,59 @@ const editeProfile = async(req,res)=>{
         
     }
 }
-
-const deleteAccount = async(req,res)=>{
+const updatePassword = async(req,res)=>{
     try {
         const id = req.params.id
-        await User.findByIdAndDelete(id)
-        req.session.destroy(()=>{
-            res.redirect('/')
-        }); 
+       
+
+        return res.render('updatePassword',{msg:req.flash('err')})
     } catch (error) {
-        console.log('user accont deleteing error',error);
+       console.log('change password page not found ',error)
+       res.status(500).send('server error');
+    }
+}
+const changePassword = async (req,res)=>{
+    try {
+        const {oldPassword,newPassword,cnfmPassword} = req.body
+        const email = req.session.userEmail
+        console.log('passwords is',req.body)
+
+        const userData = await User.findOne({password:oldPassword})
+        if(oldPassword == ''|| newPassword == ''|| cnfmPassword == ''){
+               req.flash('err','All Fields Requierd')
+               return res.render('updatePassword',{msg:req.flash('err')})
+        }
+        if(!userData){
+            req.flash('err','Old Password Not Match');
+            return res.render('updatePassword',{msg:req.flash('err')})
+        }
+        if(newPassword !== cnfmPassword){
+               req.flash('err','Password Not Match')
+               return res.render('updatePassword',{msg:req.flash('err')})
+        }
+        const updateData = await User.updateOne({email:email},{password:cnfmPassword})
+        res.redirect('/userProfile');
+
+    } catch (error) {
+        console.log('password changing error',error);
         res.status(500).send('server error');
     }
 }
 
 
 
+const loadWallet = async(req,res)=>{
+    try {
+        const userLoged = req.session.userLoged
+        return res.render('wallet',{
+            userLoged,
+        })
 
-
-
-
-
-
-
+    } catch (error) {
+        console.log('wallet page not found',error)
+        res.status(500).send('server error');
+    }
+}
 module.exports ={
     loadHome,  //home page loading
     pageNotFound, //page not found page
@@ -602,5 +658,11 @@ module.exports ={
     deleteAddress, //address deleteing
     profileEdite, // profile edite page load
     editeProfile,//edite profile post method
-    deleteAccount,//user accont delete
+
+    updatePassword, // password updateing
+    changePassword , // user password changing 
+
+
+    loadWallet,
+    
 }

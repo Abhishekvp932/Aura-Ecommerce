@@ -28,8 +28,25 @@ const userAuth = async (req,res,next)=>{
         
     }
 }
+// const block = async (req,res)=>{
+//     try {
+//         const email = req.session.userEmail
+//         const user = await User.findOne({email:email})
+
+//         if(user.isBlocked){
+//             return res.redirect('/login')
+//         }else{
+//             next();
+//         }
+//     } catch (error) {
+        
+//     }
+// }
+
 module.exports ={ 
     userCheck,
-     userAuth
+     userAuth,
+    //  block
+
 
 }

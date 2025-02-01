@@ -1,8 +1,3 @@
-
-
-
-
-
 const admins = require("../../models/adminSchema");
 const User = require("../../models/userSchema");
 const { options } = require("../../routes/userRouter");

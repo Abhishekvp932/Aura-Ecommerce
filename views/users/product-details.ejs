@@ -85,8 +85,19 @@ input[type="radio"]:checked ~ .star-label {
 }
 #addCart{
   background-color: #ffc107;
-}
+}button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px; 
+      cursor: pointer;
+      font-size: 16px;
+    }
 
+    button:hover {
+      background-color: #45a049;
+    }
 
     </style>
   </head>
@@ -228,7 +239,7 @@ input[type="radio"]:checked ~ .star-label {
                       <div class="icon">
                         <span class="ion-ios-arrow-down"></span>
                       </div>
-                      <select name="size" id="size" class="form-control">
+                      <select name="size" id="size" class="form-control" data-sizes="<%= JSON.stringify(product.size) %>">
                         <% Object.entries(product.size).forEach(([key, value]) => { %>
                           <option value="<%= key %>"><%= key %> quantity: <%= value %></option>
                         <% }); %>
@@ -239,30 +250,34 @@ input[type="radio"]:checked ~ .star-label {
                 <div class="w-100"></div>
                 <div class="input-group col-md-6 d-flex mb-3">
                   <span class="input-group-btn mr-2">
-                    <button type="button" class="quantity-left-minus btn" data-type="minus" data-field="">
+                    <button id="decrease" type="button" class="quantity-left-minus btn" data-type="minus" data-field="">
                       <i class="ion-ios-remove"></i>
                     </button>
                   </span>
-                  <input type="number" id="quantity" name="quantity" class="quantity form-control input-number" value="1" min="1" max="<%= product.quantity %>" />
+                  <input type="number" id="quantity" name="quantity" class="quantity form-control input-number" min="1"  />
                   <span class="input-group-btn ml-2">
-                    <button type="button" class="quantity-right-plus btn" data-type="plus" data-field="">
+                    <button id="increase" type="button" class="quantity-right-plus btn" data-type="plus" data-field="">
                       <i class="ion-ios-add"></i>
                     </button>
                   </span>
                 </div>
+                <% if(msg.length>0){ %>
+
+                  <h6 class="text-danger text-center"><%=msg%></h6>
+                <%}%>
                 <div class="w-100"></div>
                 <div class="col-md-12">
                   <% if (product.quantity && product.quantity > 0) { %>
-                    <p style="color: #000">TOTAL STOCK: <%= product.quantity %></p>
+                    <p style="color: red">Stock Left:<%= product.quantity %></p>
                   <% } else { %>
                     <p style="color: red">Out Of Stock</p>
                   <% } %>
                 </div>
               </div>
-             
-                <button type="submit" class="txt txt-primary py-3 px-5" id="addCart" style="background-color:#ffc107;">Add to Cart</button>
-                <a href="cart.html" class="btn btn-primary py-3 px-5">Buy now</a>
-            
+              <a href="" class="btn btn-primary">
+                <button type="submit" id="addCart" class="btn btn-primary">Add to Cart</button>
+              </a>
+                <a href="" class="btn btn-primary py-3 px-5">Buy now</a>       
             </form>                      
           </div>
         </div>
@@ -361,7 +376,7 @@ input[type="radio"]:checked ~ .star-label {
                         <div class="stars">
                           <div class="star-label mb-2">Your Rating:</div>
                           <div class="star-group">
-                            <% for (let i = 1; i <= 5; i++) { %>
+                            <% for (let i=5;i>=1;i--) { %>
                               <input 
                                   type="radio" 
                                   id="star<%= i %>" 
@@ -402,18 +417,17 @@ input[type="radio"]:checked ~ .star-label {
                       <div class="review-item mb-4 p-3 border rounded">
                           <div class="review-header d-flex justify-content-between align-items-center mb-2">
                               <div class="rating">
-                                  <!-- Show the rating as stars (you can improve this part) -->
                                   <% for (let i = 1; i <= 5; i++) { %>
                                       <i class="bi <%= i <= review.rating ? 'bi-star-fill' : 'bi-star' %> text-warning"></i>
                                   <% } %>
                               </div>
-                              <small class="text-muted"><%= review.userId.name %> - <%= new Date(review.date).toLocaleDateString() %></small>
+                              <small class="text-muted"><%= review.userId ? review.userId.name : "Unknown User" %> - <%= new Date(review.date).toLocaleDateString() %></small>
                           </div>
                           <div class="review-content">
                               <p class="mb-1"><%= review.comment %></p>
                           </div>
                       </div>
-                  <% }); %>
+                    <% }); %>                    
                       <p>No reviews yet. Be the first to review this product!</p>
                   </div>
                 </div>
@@ -444,16 +458,16 @@ input[type="radio"]:checked ~ .star-label {
                           <% if(offer){ %>
                             <% if(allProduct[i].regularPrice>offer.minPrice && allProduct[i].regularPrice<offer.maxPrice){ %>
                                 <p class="price">
-                                    <span><del>Price: <%= allProduct[i].regularPrice %></del></span>
+                                    <span><del>Price ₹: <%= allProduct[i].regularPrice %></del></span>
                                     <span style="color: red;">
-                                      Offer:<%= allProduct[i].regularPrice - ((allProduct[i].regularPrice * offer.offer) / 100) %>
+                                      Offer ₹:<%= allProduct[i].regularPrice - ((allProduct[i].regularPrice * offer.offer) / 100) %>
                                     </span>
                                 </p>
                             <% }else{ %>
-                                <p class="price"><span>Price: <%=allProduct[i].regularPrice%></span></p>
+                                <p class="price"><span>Price ₹: <%=allProduct[i].regularPrice%></span></p>
                             <% } %>
                         <% }else{ %>
-                            <p class="price"><span>Price: <%=allProduct[i].regularPrice%></span></p>
+                            <p class="price"><span>Price ₹: <%=allProduct[i].regularPrice%></span></p>
                         <% } %>
                         </div>
                         <p class="bottom-area d-flex px-3">
@@ -515,30 +529,7 @@ input[type="radio"]:checked ~ .star-label {
     <script src="/js/main.js"></script>
 
     <script>
-		$(document).ready(function(){
 
-		var quantitiy=0;
-		   $('.quantity-right-plus').click(function(e){
-
-		        e.preventDefault()
-		        var quantity = parseInt($('#quantity').val());
-		            
-		            $('#quantity').val(quantity + 1);
-		        
-		    });
-
-		     $('.quantity-left-minus').click(function(e){
-		       
-		        e.preventDefault();
-		       
-		        var quantity = parseInt($('#quantity').val());
-		        
-		            if(quantity>0){
-		            $('#quantity').val(quantity - 1);
-		            }
-		    });
-		    
-		});
 	</script>
       
 
@@ -570,6 +561,34 @@ function resetImage(imageElement) {
 		function changeMainImage(imageSrc) {
 		  document.getElementById("mainImage").src = imageSrc;
 		}
+
+    const sizeData=JSON.parse(document.getElementById('size').getAttribute('data-sizes'))
+    
+document.getElementById('size').addEventListener('change', ()=>{
+  document.getElementById('quantity').value=1
+})
+document.getElementById('quantity').value = 1
+document.getElementById('increase').addEventListener('click', ()=>{
+  const size=document.getElementById('size').value
+  const value=parseInt(document.getElementById('quantity').value)
+  if(value>4){
+    return
+  }else if(value>sizeData[size]-1){
+    return
+  }
+    
+  document.getElementById('quantity').value=value+1
+})
+
+document.getElementById('decrease').addEventListener('click', ()=>{
+  const value=parseInt(document.getElementById('quantity').value)
+  if(value==1){
+    return
+  }
+    
+  document.getElementById('quantity').value=value-1
+})
+
 	  </script>
   </body>
 </html>

@@ -8,21 +8,31 @@ const orderSchema = new Schema({
         default: uuidv4, // Correctly assigns a unique UUID
         unique: true,
     },
-    orderedItems: [{
-        product: {
+    orderedItems: [
+        {
+          product: {
             type: Schema.Types.ObjectId,
-            ref: 'Product',
+            ref: "Product",
             required: true,
-        },
-        quantity: {
+          },
+          quantity: {
             type: Number,
             required: true,
-        },
-        price: {
+          },
+          price: {
             type: Number,
             default: 0,
+          },
+          status: {
+            type: String,
+            enum: ["Ordered", "Cancelled"],
+            default:'Ordered'
+          },
+          size:{
+            type:String
+          }
         },
-    }],
+      ],
     totalPrice: {
         type: Number,
         required: true,
@@ -57,6 +67,15 @@ const orderSchema = new Schema({
         type: Boolean,
         default: false,
     },
+    userId:{
+        type:Schema.Types.ObjectId,
+        ref:'User',
+        required:true,
+    },
+    paymentMethod:{
+        type:String
+        
+    }
 });
 
 const Order = mongoose.model('Order', orderSchema);

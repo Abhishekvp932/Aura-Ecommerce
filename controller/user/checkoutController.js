@@ -21,7 +21,8 @@ const loadCheckout = async(req,res)=>{
             return res.redirect('/login');
         }
         const cart = await Cart.findOne({ userId: user._id }).populate('products.productId');
-        const address = await Address.find({ userId: user._id });
+        const address = await Address.findOne({ userId: user._id })
+        console.log('wich address',address);
         
         return res.render('checkout', {
           userLoged,
@@ -45,64 +46,90 @@ const loadPaymentSuccess = async(req,res)=>{
     }
 }
 const placeOrder = async (req, res) => {
-    try {
-      const { address, paymentMethod, discount: rawDiscount } = req.body;
-    console.log('order data',req.body);
-      const email = req.session.userEmail;
-      const user = await User.findOne({ email:email});
-      if (!user) {
-        req.flash('error', 'User not found');
-        return res.redirect('/checkout');
-      }
-  
-      const selectedAddress = await Address.findOne({userId:user._id});
-      if (!selectedAddress) {
-        req.flash('error', 'Invalid address selected');
-        return res.redirect('/checkout');
-      }
-  
-      const cart = await Cart.findOne({ userId: user._id }).populate('products.productId');
-      if (!cart || cart.products.length === 0) {
-        req.flash('error', 'Your cart is empty');
-        return res.redirect('/checkout');
-      }
-  
-      const orderedItems = cart.products.map((product) => ({
-        product: product.productId._id,
-        quantity: product.quantity,
-        price: product.price,
-      }));
-  
-      const totalPrice = orderedItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      );
-      const discount = parseFloat(rawDiscount) || 0;
-      const finalAmount = totalPrice - discount;
-  
-      const newOrder = {
-        orderedItems,
-        totalPrice,
-        discount,
-        finalAmount,
-        address: selectedAddress._id,
-        invoiceDate: new Date(),
-        status: 'Pending',
-        couponApplied: discount > 0,
-      };
-    console.log(newOrder);
+  try {
+    const { address, paymentMethod, discount: rawDiscount } = req.body;
+    console.log('Order Data:', req.body);
 
-      await Order.create(newOrder);
-      await Cart.deleteMany();
-      console.log('Order placed:', newOrder);
-  
-      return res.redirect('/payments');
-    } catch (error) {
-      console.error('Error while placing order:', error);
-      res.status(500).send('Server error');
+    const email = req.session.userEmail;
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      req.flash('error', 'User not found');
+      return res.redirect('/checkout');
     }
-  };
-  
+
+    const cart = await Cart.findOne({ userId: user._id }).populate('products.productId');
+
+    if (!cart || cart.products.length === 0) {
+      req.flash('error', 'Your cart is empty');
+      return res.redirect('/checkout');
+    }
+
+    const orderedItems = cart.products.map((product) => ({
+      product: product.productId._id,
+      quantity: product.quantity,
+      size: product.size, 
+      price: product.price,
+    }));
+
+    const totalPrice = orderedItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    const discount = parseFloat(rawDiscount) || 0;
+    const finalAmount = totalPrice - discount;
+
+    const newOrder = {
+      userId: user._id,
+      orderedItems,
+      paymentMethod,
+      totalPrice,
+      discount,
+      finalAmount,
+      address,
+      invoiceDate: new Date(),
+      status: 'Pending',
+      couponApplied: discount > 0,
+    };
+
+    console.log('New Order:', newOrder);
+    await Order.create(newOrder);
+
+    
+    for (const item of orderedItems) {
+      const product = await Products.findById(item.product);
+
+      if (!product) {
+        req.flash('error', 'Product not found');
+        return res.redirect('/checkout');
+      }
+
+      
+      if (!product.size[item.size] || product.size[item.size] < item.quantity) {
+        req.flash('error', `Insufficient stock for size ${item.size}`);
+        return res.redirect('/checkout');
+      }
+
+     
+      product.size[item.size] -= item.quantity;
+
+      
+      product.quantity -= item.quantity;
+
+      await product.save();
+    }
+
+    
+    await Cart.deleteMany({ userId: user._id });
+
+    console.log('Order placed successfully:', newOrder);
+    return res.redirect('/payments');
+  } catch (error) {
+    console.error('Error while placing order:', error);
+    res.status(500).send('Server error');
+  }
+};
+
 module.exports = {
     loadCheckout, 
     loadPaymentSuccess,

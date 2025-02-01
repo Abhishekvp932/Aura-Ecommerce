@@ -129,30 +129,35 @@
                 <div class="col-md-12 mb-4">
                   <div class="form-group">
                     <h4 class="mb-3">Select Delivery Address</h4>
-                    <% address[0].addresses.forEach((add) => { %>
-                    <div class="saved-addresses">
-                      <div class="form-check mb-3 p-3 bg-light">
-                        <!-- Address radio button -->
-                        <input
-                          class="form-check-input"
-                          type="radio"
-                          name="address"
-                          value="<%= add._id %>"
-                          id="address_<%= add._id %>"
-                          required
-                        />
-                        <label class="form-check-label" for="address_<%= add._id %>">
-                          <strong>Home</strong><br />
-                          <strong>Name:</strong> <%= add.name %><br />
-                          <strong>Landmark:</strong> <%= add.landMark %><br />
-                          <strong>Address:</strong> <%= add.addressType %><br />
-                          <strong>City:</strong> <%= add.city %><br />
-                          <strong>Pincode:</strong> <%= add.pincode %><br />
-                          <strong>Phone:</strong> <%= add.phone %>
-                        </label>
-                      </div>
-                    </div>
-                    <% }) %>
+                    <% if (address && address.addresses && address.addresses.length > 0) { %>
+                      <% address.addresses.forEach((add) => { %>
+                        <div class="saved-addresses">
+                          <div class="form-check mb-3 p-3 bg-light">
+                            <input
+                              class="form-check-input"
+                              type="radio"
+                              name="address"
+                              value="<%= add._id %>"
+                              id="address_<%= add._id %>"
+                              required
+                            />
+                            <label class="form-check-label" for="address_<%= add._id %>">
+                              <strong>Home</strong><br />
+                              <strong>Name:</strong> <%= add.name %><br />
+                              <strong>Landmark:</strong> <%= add.landMark %><br />
+                              <strong>Address:</strong> <%= add.addressType %><br />
+                              <strong>City:</strong> <%= add.city %><br />
+                              <strong>state:</strong> <%= add.state %> <br />
+                              <strong>Pincode:</strong> <%= add.pincode %><br />
+                              <strong>Phone:</strong> <%= add.phone %>
+                            </label>
+                          </div>
+                        </div>
+                      <% }); %>
+                    <% } else { %>
+                      <p>No saved addresses found. Please add a new address.</p>
+                    <% } %>
+                    
             
                     <!-- Add New Address Button -->
                     <a href="/addAddress" class="btn btn-primary mb-4">+ Add New Address</a>
@@ -167,7 +172,7 @@
                     <h3 class="billing-heading mb-4">Cart Total</h3>
                     <% cart.products.forEach((product) => { %>
                     <p class="d-flex">
-                      <span><%= product.productId.name %></span>
+                      <span><%= product.productId.productName %></span>
                       <span>₹ <%= product.price * product.quantity %></span>
                     </p>
                     <% }) %>
@@ -187,7 +192,7 @@
                       <div class="col-md-12">
                         <div class="radio">
                           <label>
-                            <input type="radio" name="paymentMethod" value="Bank Transfer" class="mr-2" required />
+                            <input type="radio" id="paymentMethod" name="paymentMethod" value="Bank Transfer" class="mr-2"  />
                             Direct Bank Transfer
                           </label>
                         </div>
@@ -197,7 +202,7 @@
                       <div class="col-md-12">
                         <div class="radio">
                           <label>
-                            <input type="radio" name="paymentMethod" value="COD" class="mr-2" required />
+                            <input type="radio" id="paymentMethod" name="paymentMethod" value="Cash on delivery" class="mr-2"  />
                             Cash on Delivery
                           </label>
                         </div>
@@ -207,7 +212,7 @@
                       <div class="col-md-12">
                         <div class="radio">
                           <label>
-                            <input type="radio" name="paymentMethod" value="Paypal" class="mr-2" required />
+                            <input type="radio" id="paymentMethod" name="paymentMethod" value="Paypal" class="mr-2"  />
                             PayPal
                           </label>
                         </div>
@@ -217,7 +222,7 @@
                       <div class="col-md-12">
                         <div class="checkbox">
                           <label>
-                            <input type="checkbox" class="mr-2" required />
+                            <input type="checkbox" class="mr-2"  />
                             I have read and accept the terms and conditions
                           </label>
                         </div>
@@ -284,24 +289,20 @@
     <script src="js/main.js"></script>
 
     <script>
-      function confirmBlock(event) {
-        event.preventDefault();
-        const href = event.target.href;
-        Swal.fire({
-          title: "Are you sure?",
-          text: "Are you sure you want to place this order?",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          cancelButtonColor: "#3085d6",
-          confirmButtonText: "Yes, order!",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = href;
-          }
-        });
-        return false;
-      }
+     document.querySelector('.billing-form').addEventListener('submit', function (event) {
+  const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+  if (!selectedPaymentMethod) {
+    event.preventDefault(); 
+    Swal.fire({
+      title: "Payment Method Required",
+      text: "Please select a payment method before placing the order.",
+      icon: "warning",
+      confirmButtonColor: "#3085d6",
+      confirmButtonText: "OK",
+    });
+  }
+});
+
     </script>
   </body>
 </html>

@@ -5,6 +5,8 @@ const Products = require('../../models/productSchema');
 const Category = require('../../models/categorySchema');
 const offers = require('../../models/offerSchema');
 const Address = require('../../models/addressSchema');
+const { applyVirtuals } = require('../../models/orderSchema');
+const { options } = require('../../routes/userRouter');
 
 
 
@@ -22,7 +24,7 @@ const shoppingPage = async (req, res) => {
     let page = parseInt(req.query.page, 10) || 1;
     let limit = 9;
 
-    const products = await Products.find({ isBlocked: false })
+    const products = await Products.find({ isBlocked: false }).populate('products.reviews')
       .sort(sortCriteria)
       .populate('category')
       .limit(limit)
@@ -67,11 +69,16 @@ const loadProductDetails = async(req,res)=>{
         const productId = req.params.id;
         const userLoged = req.session.userLoged;
        console.log(productId)
-         const product = await Products.findById(productId);
+         const product = await Products.findById(productId).populate('reviews.userId')
+         console.log('reviews data',product.reviews)
+         console.log('single product',product)
          const category = await Category.findById(product.category);
         const offer = await offers.findOne({isActive:true}) 
         const allProduct = await Products.find({category: category._id})
         console.log(allProduct);
+          
+        const userIds = product.reviews.map((review) => review.userId);
+        console.log('review user id is',userIds);
         
     if (!product) {
       req.flash('error', 'Product not found');
@@ -88,12 +95,14 @@ const loadProductDetails = async(req,res)=>{
     } 
     const ranNum=Array.from(randomNum)
    
+
     res.render('product-details', {
         userLoged,
         product,
         offer,
         ranNum,
-        allProduct
+        allProduct,
+        msg:req.flash('err')
       });
     } catch (error) {
         console.log('product details page not found',error);
@@ -109,7 +118,9 @@ const eachCategory = async (req, res) => {
     const { id } = req.params;
     const { sort, priceFrom, priceTo } = req.query;
     const userLoged = req.session.userLoged;
-    
+    let page = parseInt(req.query.page, 10) || 1;
+    let limit = 9;
+
     const category = await Category.find({ _id: id });
     if (!category) {
       return res.redirect('/page-404');
@@ -143,13 +154,23 @@ const eachCategory = async (req, res) => {
         sortOptions = { productName: -1 };
         break;
     }
-    const sortedProducts = await Products.find(query).sort(sortOptions);
+    const sortedProducts = await Products.find(query).sort(sortOptions)
+    .populate('category')
+    .limit(limit)
+    .skip((page - 1) * limit);
+
+    const count = await Products.countDocuments({ isBlocked: false });
+    const totalPage = Math.ceil(count / limit);
+
 
     if (offerActive) {
       res.render('category', {
         category,
         product: sortedProducts,
         allCategory,
+        count,
+        totalPage,
+        currentPage:page,
         userLoged,
         offer,
         sortOption: sort,
@@ -205,6 +226,53 @@ const reviewAdding = async (req, res) => {
   }
 };
 
+const searchProducts = async (req, res) => {
+  try {
+    const userLoged = req.session.userLoged;
+    const { search, category, minPrice, maxPrice, sortOption, availability } = req.body;
+
+    const filters = {};
+    
+    if (search) {
+      filters.productName = { $regex: search, $options: 'i' };
+    }
+    
+    if (category) {
+      filters.category = category;
+    }
+    
+    if (minPrice || maxPrice) {
+      filters.price = {};
+      if (minPrice) filters.price.$gte = Number(minPrice);
+      if (maxPrice) filters.price.$lte = Number(maxPrice);
+    }
+    
+    if (availability) {
+      filters.availability = availability === 'true';
+    }
+
+    let sortCriteria = {};
+    if (sortOption === 'priceAsc') sortCriteria.price = 1;
+    if (sortOption === 'priceDesc') sortCriteria.price = -1;
+
+    const searchProduct = await Products.find(filters).sort(sortCriteria);
+
+    const categoryList = await Category.find();
+
+    res.render('shopping', { 
+      product: searchProduct, 
+      category: categoryList,
+      totalPage: 1, 
+      currentPage: 1,
+      sortOption,
+      userLoged,
+      offer: null 
+    });
+  } catch (error) {
+    console.log('Advanced search error:', error);
+    res.status(500).send('Server error');
+  }
+};
 
 
 module.exports = {
@@ -212,4 +280,6 @@ module.exports = {
     loadProductDetails, //product details page load
     eachCategory, //categorty side bar
     reviewAdding, // review adding
+    searchProducts // product searching
+    
 }

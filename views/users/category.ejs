@@ -89,6 +89,55 @@ select.form-control:focus {
             margin: 0 10px;
             color: #151414;
         }
+        .search-wrapper {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .search-input-group {
+            display: flex;
+            border: 2px solid #6c757d;
+            border-radius: 50px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .search-input {
+            flex-grow: 1;
+            border: none;
+            padding: 12px 15px;
+            padding-left: 40px;
+            font-size: 16px;
+        }
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(0,123,255,0.1);
+        }
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            pointer-events: none;
+        }
+        .search-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 0 50px 50px 0;
+            transition: background-color 0.3s ease;
+        }
+        .search-btn:hover {
+            background-color: #0056b3;
+        }
+        .search-input-group:focus-within {
+            border-color: #007bff;
+        }
+        .search-input-group:focus-within .search-icon {
+            color: #007bff;
+        }
+
     </style>
   </head>
   <body class="goto-here">
@@ -150,7 +199,22 @@ select.form-control:focus {
     </div>
 
     <section class="ftco-section bg-light">
-      
+      <div>
+        <div class="search-wrapper">
+          <form action="/search" method="post" class="search-input-group">
+              <i class="bi bi-search search-icon"></i>
+              <input 
+                  type="search" 
+                  name="search" 
+                  class="search-input" 
+                  placeholder="Search products..."
+              >
+              <button type="submit" class="btn btn-primary search-btn">
+                  <i class="bi bi-search me-2"></i>Search
+              </button>
+          </form>
+      </div>
+      </div>
       <div class="container">
         <div class="breadcrumbs">
           <a href="/">Home</a>
@@ -219,6 +283,11 @@ select.form-control:focus {
                 <div class="block-27">
                   <ul>
                     <li><a href="#">&lt;</a></li>
+                    <% for (let i = 1; i <=totalPage; i++) { %>
+                      <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                          <a class="page-link" href="?page=<%= i %>&sort=<%= sortOption %>"><%= i %></a>
+                      </li>
+                <% } %>                  
                     <li><a href="#">&gt;</a></li>
                   </ul>
                 </div>
@@ -304,7 +373,7 @@ select.form-control:focus {
                 
                 <div class="sorting-dropdown">
                   <form method="get" action="/category/<%= category[0]._id %>">
-                    <select name="sort" class="form-select" onchange="this.form.submit()">
+                    <select name="sort" class="form-select" onchange="this.form.submit()" style="background-color:white;color: black;border-radius: 20px;border-color:lightslategray;height: 40px;">
                       <option value="" selected disabled>Sort by</option>
                       <option value="low-to-high" <%= sortOption === 'low-to-high' ? 'selected' : '' %>>Price: Low to High</option>
                       <option value="high-to-low" <%= sortOption === 'high-to-low' ? 'selected' : '' %>>Price: High to Low</option>
@@ -314,9 +383,6 @@ select.form-control:focus {
                   </form>
                 </div>                
               </div>
-
-
-              
             </div>
           </div>
         </div>

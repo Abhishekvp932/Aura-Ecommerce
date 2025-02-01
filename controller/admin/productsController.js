@@ -10,6 +10,7 @@ const fs = require("fs");
 const Product = require("../../models/productSchema");
 const router = require("../../routes/userRouter");
 const Address = require('../../models/addressSchema');
+const Cart = require("../../models/cartSchema");
 
 
 const loadProducts = async (req, res) => {
@@ -125,60 +126,81 @@ const editeProduct = async (req,res)=>{
 }
 
 
-const productEdite = async (req,res)=>{
-    try {
-      const products = req.body;
-      const id = req.params.id;
-  
-      const image = [];
-      if (req.files && req.files.length > 0) {
-        for (let i = 0; i < req.files.length; i++) {
-          const originalImagePath = req.files[i].path;
-  
-          const uploadsDir = path.join(__dirname, "../public/uploads");
-  
-          if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
-          }
-  
-          const resizedImageFilename = `${req.files[i].filename}`;
-          const resizedImagePath = path.join(uploadsDir, resizedImageFilename);
-  
-          await sharp(originalImagePath)
-            .resize({ width: 300, height: 300 })
-            .toFile(resizedImagePath);
-  
-          image.push(resizedImageFilename);
+const productEdite = async (req, res) => {
+  try {
+    const products = req.body;
+    const id = req.params.id;
+
+    const image = [];
+    if (req.files && req.files.length > 0) {
+      for (let i = 0; i < req.files.length; i++) {
+        const originalImagePath = req.files[i].path;
+
+        const uploadsDir = path.join(__dirname, "../public/uploads");
+
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
         }
+
+        const resizedImageFilename = `${req.files[i].filename}`;
+        const resizedImagePath = path.join(uploadsDir, resizedImageFilename);
+
+        await sharp(originalImagePath)
+          .resize({ width: 300, height: 300 })
+          .toFile(resizedImagePath);
+
+        image.push(resizedImageFilename);
       }
-  
-      const updatedProduct = {
-        productName: products.productName,
-        description: products.description,
-        regularPrice: products.regularPrice,
-        quantity: products.quantity,
-        category:products.category,
-        size: {
-          small: products.small,
-          medium: products.medium,
-          large: products.large,
-          XL: products.XL,
-          XXL: products.XXL,
-        },
-        colors: products.colors,
-        productImage: image.length==0? req.body.existingImages : image,
-        status: "Available",
-      }
-      console.log(updatedProduct)
-      await Products.updateOne({ _id: id }, { $set: updatedProduct });
-      res.redirect("/admin/products");
-    } catch (error) {
-      console.log(error.message)
-      console.log('products adding error',error);
-      res.status(500).send('server error');
-      
     }
+    const updatedProduct = {
+      productName: products.productName,
+      description: products.description,
+      regularPrice: products.regularPrice,
+      quantity: products.quantity,
+      category: products.category,
+      size: {
+        small: products.small,
+        medium: products.medium,
+        large: products.large,
+        XL: products.XL,
+        XXL: products.XXL,
+      },
+      colors: products.colors,
+      productImage: image.length === 0 ? req.body.existingImages : image,
+      status: products.quantity > 0 ? "Available" : "Out of Stock", 
+    };
+
+   
+    await Product.updateOne({ _id: id }, { $set: updatedProduct });
+
+ 
+    const newProductQuantity = parseInt(products.quantity);
+    if (newProductQuantity > 0) {
+ 
+      await Cart.updateMany(
+        { "products.productId": id }, 
+        {
+          $set: {
+            "products.$[elem].quantity": newProductQuantity, 
+          },
+        },
+        {
+          arrayFilters: [{ "elem.productId": id, "elem.quantity": { $gt: newProductQuantity } }],
+        }
+      );
+    } else {
+      await Cart.updateMany(
+        { "products.productId": id },
+        { $pull: { products: { productId: id } } }
+      );
+    }
+
+    res.redirect("/admin/products");
+  } catch (error) {
+    console.error("Product editing error:", error.message);
+    res.status(500).send("Server error");
   }
+};
 
 
   const productBlock = async (req,res)=>{

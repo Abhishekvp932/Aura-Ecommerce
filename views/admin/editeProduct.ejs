@@ -187,29 +187,23 @@
                 <div class="mb-4">
                     <label class="form-label">Sizes Available</label>
                     <div class="sizes-container">
-                        <div class="size-input">
-                            <label>S:</label>
-                            <input type="text" name="small">
-                        </div>
-                        <div class="size-input">
-                            <label>M:</label>
-                            <input type="text" name="medium">
-                        </div>
-                        <div class="size-input">
-                            <label>L:</label>
-                            <input type="text" name="large">
-                        </div>
-                        <div class="size-input">
-                            <label  style="margin-top: -20px;position: absolute;">XL:</label>
-                            <input type="text" name="XL">
-                        </div>
-                        <div class="size-input">
-                            <label style="margin-left: -20px;">XXL:</label>
-                            <input type="text" name="XXL">
-                        </div>
+                        <% for (const [size, quantity] of Object.entries(product.size)) { %>
+                            <div class="size-input">
+                                <label 
+                                    style="<%= size === 'XL' ? 'margin-top: -20px; position: absolute;' : size === 'XXL' ? 'margin-left: -20px;' : '' %>"
+                                >
+                                    <%= size.toUpperCase() %>:
+                                </label>
+                                <input 
+                                    type="text" 
+                                    name="<%= size %>" 
+                                    value="<%= quantity %>" 
+                                />
+                            </div>
+                        <% } %>
                     </div>
                 </div>
-
+                
                 <div class="mb-4">
                     <label class="form-label">Colors (Comma-separated)</label>
                     <input type="text" class="form-control" name="colors" placeholder="Red, Blue, Green...">
