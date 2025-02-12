@@ -8,6 +8,9 @@ const productController = require('../controller/user/productConteroller');
 const cartController = require('../controller/user/cartController');
 const checkoutController = require('../controller/user/checkoutController');
 const orderController = require('../controller/user/orderConteroller');
+const couponController = require('../controller/user/couponController')
+const wishlistController = require('../controller/user/wishlistController')
+
 
 
 router.post('/resendOtp',userController.resendOTP);
@@ -58,9 +61,20 @@ router.post('/update-cart-quantity',cartController.updateCart);
 
 router.get('/wallet',userCheck,userController.loadWallet);
 
+router.get('/orderReturn',userCheck,orderController.returnRequest)
 
+router.post('/couponApply',userCheck,couponController.couponApply)
+router.get('/wishlist',userCheck,wishlistController.loadWishlist)
+router.post('/addToWishlist',wishlistController.addToWishlist);
+router.post('/cartAdd',wishlistController.addToCart);
 
+router.get('/removeWishlist/:id/:productId',userCheck,wishlistController.removeWishlist);
 
+router.get('/allCoupon',userCheck,couponController.findAllCoupon)
+
+router.get('/get-address/:id',userCheck,checkoutController.getAddrss);
+router.post('/update-address/:id',userCheck,checkoutController.updateAddress)
+router.post('/verify-payment',orderController.verifyPayment);
 
 
 

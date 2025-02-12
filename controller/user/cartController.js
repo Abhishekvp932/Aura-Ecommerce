@@ -118,15 +118,16 @@ const addToCart = async (req, res) => {
       }
 
       existingProduct.quantity = updatedQuantity;
-      existingProduct.totalPrice = existingProduct.price * existingProduct.quantity;
+      existingProduct.totalPrice = existingProduct.price * existingProduct.quantity - product.productOffer
     } else {
       cart.products.push({
         productId: product._id,
         quantity,
         size,
-        price: product.regularPrice,
+        price: product.regularPrice - product.productOffer,
         name: product.productName,
-        totalPrice: product.regularPrice * quantity,
+        totalPrice: product.regularPrice * quantity - product.productOffer,
+        productDiscount:product.productOffer,
       });
     }
 
@@ -158,60 +159,105 @@ const deleteCart = async (req, res) => {
   }
 };
 
+
+
+
+
+
+
 const updateCart = async (req, res) => {
   try {
     const { productId, action } = req.body;
-    console.log("Nested cart product id is ", productId);
+    console.log("Product ID:", productId);
+    console.log("Action:", action);
 
     const email = req.session.userEmail;
     const user = await User.findOne({ email: email });
 
     if (!user) {
-      console.log("User not found");
-      return res.redirect('/login')
+      return res.json({
+        success: false,
+        message: 'User not found'
+      });
     }
 
-    const cart = await Cart.findOne({ userId: user._id });
-
-    // if (!cart || !cart.products || cart.products.length === 0) {
-    //   console.log("Cart is empty or does not exist.");
-    //   return res.status(404).send("Cart not found or empty");
-    // }
-
-    console.log("Cart Products:", cart.products);
+    const cart = await Cart.findOne({ userId: user._id }).populate('products')
+    if (!cart) {
+      return res.json({
+        success: false,
+        message: 'Cart not found'
+      });
+    }
 
     const cartItemIndex = cart.products.findIndex(
       (item) => item._id.toString() === productId.toString()
     );
 
-    console.log("Cart Item Index Found:", cartItemIndex);
-
-   
+    if (cartItemIndex === -1) {
+      return res.json({
+        success: false,
+        message: 'Product not found in cart'
+      });
+    }
 
     const product = await Products.findById(cart.products[cartItemIndex].productId);
 
+    const currentQuantity = cart.products[cartItemIndex].quantity;
+
     if (action === "increase") {
-      const currentQuantity = cart.products[cartItemIndex].quantity;
-      console.log("Current Quantity:", currentQuantity);
-
-      if (currentQuantity + 1 > product.quantity || currentQuantity + 1 > 5) {
-        req.flash("err", "Stock not available");
-        return res.redirect("/cart");
+      if (currentQuantity + 1 > product.quantity) {
+        return res.json({
+          success: false,
+          message: 'Stock not available'
+        });
+      }else if(currentQuantity + 1 > 5){
+        return res.json({
+          success:false,
+          message: ' Sorry You can Only Order 5 Products At a Time'
+        })
       }
-
+      
       cart.products[cartItemIndex].quantity += 1;
-    } else if (action === "decrease") {
-      if (cart.products[cartItemIndex].quantity > 1) {
-        cart.products[cartItemIndex].quantity -= 1;
-      }
+      
+    } else if (action === "decrease" && currentQuantity > 1) {
+      cart.products[cartItemIndex].quantity -= 1;
     }
 
+    cart.totalPrice = cart.products.reduce((total, item) => {
+      return total + item.quantity * cart.products[cartItemIndex].price;
+    }, 0);
+    console.log('cart total is', cart.totalPrice)
+   const updateCart = await Cart.updateOne(
+    {
+      _id:cart._id,
+      'products._id':productId
+    },
+    {$set:{'products.$.totalPrice':cart.totalPrice}}
+   );
+    console.log('update cart is',updateCart)
+    
     await cart.save();
-    console.log("Cart updated successfully");
-    res.redirect("/cart");
+
+    
+    const updatedCart = await cart.populate('products.productId');
+    const subtotal = updatedCart.products.reduce((total, item) => {
+      return total + (item.price * item.quantity);
+    }, 0);
+
+    return res.json({
+      success: true,
+      newQuantity: cart.products[cartItemIndex].quantity,
+      subtotal: subtotal.toFixed(2),
+      itemTotal: (cart.products[cartItemIndex].quantity * cart.products[cartItemIndex].price).toFixed(2)
+    });
+
+   
   } catch (error) {
-    console.error("Error updating cart quantity:", error);
-    res.status(500).send("Error updating cart quantity");
+    console.error("Error updating cart:", error);
+    return res.json({
+      success: false,
+      message: 'Error updating cart'
+    });
   }
 };
 

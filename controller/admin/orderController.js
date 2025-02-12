@@ -171,9 +171,49 @@ const updateStatus = async (req, res) => {
     res.status(500).send("server error");
   }
 };
+
+
+ const returnSuccess = async (req,res)=>{
+  try {
+   
+    const id = req.query.data
+    const orderId = req.query.orderId
+    console.log('update id product is',id)
+    console.log('update id  is',orderId)
+
+
+ const data = await Order.updateOne(
+      {
+        _id:orderId,
+        'orderedItems._id':id
+      },
+      {
+        $set:{
+          'orderedItems.$.status':'Returned',
+        }
+      }
+    )
+    const order = await Order.findById(orderId).populate('orderedItems')
+ 
+
+    let change = order.orderedItems.every((item)=> item.status == 'Returned');
+console.log('cahngw data is',change);
+    if(change){
+      const updateData = await Order.updateOne({_id:orderId},{status:'Returned'})
+      console.log('updated data is ',updateData);
+    }
+
+    console.log('data is ',data)
+    res.redirect(`/admin/orderDetails/${orderId}`)
+  } catch (error) {
+    console.log('order return error in admin side',error)
+    res.status(500).send('server error')
+  }
+ }
 module.exports = {
   loadAdminOrders,
   loadOrderDetails,
   cancelOrder,
   updateStatus,
+  returnSuccess
 };

@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aura-Men</title>
+
+
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <link
@@ -279,9 +285,10 @@ img{
                     <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
                       <th class="px-4 py-3">PRODUCT IMAGE</th>
                       <th class="px-4 py-3">PRODUCT NAME</th>
-                      <th class="px-4 py-3">PRODUCT CATEGORY</th>
-                      <th class="px-4 py-3">PRODUCT quantity</th>
+                      <th class="px-4 py-3">CATEGORY</th>
+                      <th class="px-4 py-3">quantity</th>
                       <th class="px-4 py-3">AMOUNT</th>
+                      <th class="px-4 py-3">OFFER</th>
                       <th class="px-4 py-3">LAST UPDATED</th>
                       <th class="px-4 py-3">STATUS</th>
                       <th class="px-4 py-3">ACTIONS</th>
@@ -304,7 +311,8 @@ img{
                       <td class="px-4 py-3"><%=product[i].productName%></td>
                       <td class="px-4 py-3"><%=product[i].category.name%></td>
                       <td class="px-4 py-3"><%=product[i].quantity%></td>
-                      <td class="px-4 py-3"><%=product[i].regularPrice%></td>
+                      <td class="px-4 py-3">₹<%=product[i].regularPrice%></td>
+                      <td class="px-4 py-3">₹<%=product[i].productOffer%></td>
                       <td><%= new Date(product[i].createdAt).toLocaleDateString('en-US', { 
                         year: 'numeric', 
                         month: 'long', 
@@ -332,6 +340,15 @@ img{
                               <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
                             </svg>
                           <a>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3">
+                        <div class="flex items-center space-x-4">
+                          <button  onclick="offerAdding('<%= product[i]._id %>')" id="addoffer" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-200">
+                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M21 11.5l-8-8a2.828 2.828 0 00-4 0l-8 8a2.828 2.828 0 000 4l8 8a2.828 2.828 0 004 0l8-8a2.828 2.828 0 000-4zm-14.5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm9 7a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/>
+                            </svg>  
+                          <button>
                         </div>
                       </td>
                     </tr>
@@ -364,5 +381,107 @@ img{
         </main>
       </div>
     </div>
+
+
+
+<!-- Modal -->
+<div id="offerModal" class="modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">OFFER ADD</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="btnClose"></button>
+      </div>
+      <div class="modal-body">
+       <input type="text" id="newOffer" style="width: 450px;height: 50px;color: #000;" placeholder="Add Offer">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="closeBtn">Close</button>
+        <button type="button" class="btn btn-primary" id="saveBtn">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script>
+    
+  //   document.getElementById('addoffer').addEventListener('click', function() {
+  //   var offerModal = new bootstrap.Modal(document.getElementById('offerModal'));
+  //   offerModal.show();
+
+  //     document.getElementById('closeBtn').style.display = 'none'
+  // });
+
+
+const offerAdding = (productId)=>{
+  const offerModal = document.getElementById('offerModal')
+  offerModal.style.display = 'block'
+    // document.getElementById('btnClose').style.display = 'none'
+   const closeModalBtn = document.getElementById('closeBtn')
+
+    closeModalBtn.onclick =()=>{
+      offerModal.style.display = 'none'
+    }
+    document.getElementById('saveBtn').addEventListener('click',async(e)=>{
+e.preventDefault()
+const offer = document.getElementById('newOffer').value;
+ if(!offer){
+   swal.fire({
+    title:'Warning',
+    text:'Please add Offer',
+    icon:'warning'
+   })
+   return
+ }
+
+ try {
+
+  const response = await fetch(`/admin/saveOffer?productId=${productId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offer: offer})
+      });
+
+      const result = await response.json();
+
+      if(result.success){
+        swal.fire({
+          title:"success",
+          text:result.message,
+          icon:'success'
+        })
+      window.location.href = '/admin/products'
+
+      }else{
+        swal.fire({
+          title:'error',
+          text:result.message,
+          icon:'error'
+        })
+         window.location.href = '/admin/products'
+      }
+     
+
+  
+ } catch (error) {
+  console.log(error);
+  
+  swal.fire({
+    title:'error',
+    text:'offer adding error',
+    icon:'error'
+  })
+ }
+
+  })
+ 
+
+  }
+ 
+
+ 
+  </script>
+
+
   </body>
 </html>

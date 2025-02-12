@@ -222,24 +222,31 @@
                     <% if(offer){ %>
                       <% if(product[i].regularPrice>offer.minPrice && product[i].regularPrice<offer.maxPrice){ %>
                           <p class="price">
-                              <span><del>Price: <%= product[i].regularPrice %></del></span>
+                              <span><del>Price:₹<%= product[i].regularPrice %></del></span>
                               <span style="color: red;">
-                                Offer:<%= product[i].regularPrice - ((product[i].regularPrice * offer.offer) / 100) %>
+                                Offer:₹<%= product[i].regularPrice - ((product[i].regularPrice * offer.offer) / 100) %>
                               </span>
                           </p>
                       <% }else{ %>
                           <p class="price"><span>Price:₹ <%=product[i].regularPrice%></span></p>
                       <% } %>
+                  <% }else if(product[i].productOffer){ %>
+                    <p class="price">
+                      <span><del>Price:₹<%= product[i].regularPrice %></del></span>
+                      <span style="color: red;">
+                        Offer:₹<%= product[i].regularPrice - product[i].productOffer %>
+                      </span>
+                  </p>
                   <% }else{ %>
-                      <p class="price"><span>Price:₹<%=product[i].regularPrice%></span></p>
-                  <% } %>
+                    <p class="price"><span>Price:₹<%= product[i].regularPrice %></span></p>
+                    <% } %>
                   <% }else{ %>
                     <span class="badge badge-danger">out of stock </span>
                     <%  } %>
                   </div>
                   <p class="bottom-area d-flex px-3">
                     <a href="/cart" class="add-to-cart text-center py-2 mr-1"><span>Add to cart <i class="ion-ios-add ml-1"></i></span></a>
-                    <a href="#" class="buy-now text-center py-2">Buy now<span><i class="ion-ios-cart ml-1"></i></span></a>
+                    <a href="#" class="buy-now text-center py-2">wishList<span><i class="ion-ios-cart ml-1"></i></span></a>
                   </p>
                 </div>
               </div>
@@ -255,7 +262,7 @@
                     <li><a href="#">&lt;</a></li>
                     <% for (let i = 1; i <= totalPage; i++) { %>
                       <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-                          <a class="page-link" href="?page=<%= i %>&sort=<%= sortOption %>"><%= i %></a>
+                          <a class="btn btn-primary" href="?page=<%= i %>&sort=<%= sortOption %>"><%= i %></a>
                       </li>
                 <% } %>                  
                     <li><a href="#">&gt;</a></li>
@@ -299,23 +306,20 @@
                     
               <div class="sidebar-box-2">
                 <h2 class="heading">Price Range</h2>
-                <form method="post" class="colorlib-form-2">
+                <form method="get" class="colorlib-form-2">
                   <div class="row">
                     <div class="col-md-12">
                       <div class="form-group">
                         <label for="guests">Price from:</label>
                         <div class="form-field">
                           <i class="icon icon-arrow-down3"></i>
-                          <select
-                            name="people"
-                            id="people"
-                            class="form-control"
-                          >
-                            <option value="#">1</option>
-                            <option value="#">200</option>
-                            <option value="#">300</option>
-                            <option value="#">400</option>
-                            <option value="#">1000</option>
+                          <select name="priceFrom" id="priceFrom" class="form-control" onchange="this.form.submit()">
+                            <option value="" <%= !priceFrom ? 'selected' : '' %>>Select Price From</option>
+                            <option value="1" <%= priceFrom === '1' ? 'selected' : '' %>>₹1</option>
+                            <option value="200" <%= priceFrom === '200' ? 'selected' : '' %>>₹200</option>
+                            <option value="300" <%= priceFrom === '300' ? 'selected' : '' %>>₹300</option>
+                            <option value="400" <%= priceFrom === '400' ? 'selected' : '' %>>₹400</option>
+                            <option value="1000" <%= priceFrom === '1000' ? 'selected' : '' %>>₹1000</option>
                           </select>
                         </div>
                       </div>
@@ -325,23 +329,20 @@
                         <label for="guests">Price to:</label>
                         <div class="form-field">
                           <i class="icon icon-arrow-down3"></i>
-                          <select
-                            name="people"
-                            id="people"
-                            class="form-control"
-                          >
-                            <option value="#">2000</option>
-                            <option value="#">4000</option>
-                            <option value="#">6000</option>
-                            <option value="#">8000</option>
-                            <option value="#">10000</option>
+                          <select name="priceTo" id="priceTo" class="form-control" onchange="this.form.submit()">
+                            <option value="" <%= !priceTo ? 'selected' : '' %>>Select Price To</option>
+                            <option value="2000" <%= priceTo === '2000' ? 'selected' : '' %>>₹2000</option>
+                            <option value="4000" <%= priceTo === '4000' ? 'selected' : '' %>>₹4000</option>
+                            <option value="6000" <%= priceTo === '6000' ? 'selected' : '' %>>₹6000</option>
+                            <option value="8000" <%= priceTo === '8000' ? 'selected' : '' %>>₹8000</option>
+                            <option value="10000" <%= priceTo === '10000' ? 'selected' : '' %>>₹10000</option>
                           </select>
                         </div>
                       </div>
                     </div>
                   </div>    
                 </form>
-                <div class="sorting-buttons">
+                    <div class="sorting-buttons">
                   <button
                     id="sort-low-to-high"
                     class="btn <%= sortOption === 'low-to-high' ? 'btn-primary' : 'btn-secondary' %>"

@@ -217,18 +217,18 @@
                 </div>
                 <div class="card">
                     <h4>Choose Images</h4>
+                    <!-- Replace your existing images input with this -->
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <% for (let i = 0; i < product.productImage.length; i++) { %>
-                            <input type="file" name="existingImages" value="/<%=product.productImage[i]%>" hidden>
+                            <input type="hidden" name="existingImages[]" value="<%=product.productImage[i]%>">
                             <div id="image-<%= i %>" style="position: relative;">
                                 <img
                                     src="/<%= product.productImage[i] %>"
                                     alt="Image <%= i + 1 %>"
                                     style="width: 100px; height: 100px; object-fit: cover;"
                                 />
-                                <!-- Added remove icon -->
                                 <div class="remove-icon" onclick="removeExistingImage(<%= i %>)" 
-                                     style="position: absolute; top: -8px; right: -8px; background-color: red; 
+                                    style="position: absolute; top: -8px; right: -8px; background-color: red; 
                                             color: white; width: 20px; height: 20px; border-radius: 50%; 
                                             display: flex; align-items: center; justify-content: center; 
                                             cursor: pointer;">
@@ -270,7 +270,6 @@
                 <script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
                 <script>
                     let croppers = {};
-                    // Add this array to track removed images
                     let removedImages = [];
                 
                     function handleImageSelect(event, index) {
@@ -338,23 +337,27 @@
                         }
                     }
                 
-                    // Add this function to handle removing existing images
-                    function removeExistingImage(index) {
-                        const imageContainer = document.getElementById(`image-${index}`);
-                        if (imageContainer) {
-                            // Add the image index to removedImages array
-                            removedImages.push(index);
-                            // Hide the image container
-                            imageContainer.style.display = 'none';
-                            // Create a hidden input to track removed images
+                    
+                                    function removeExistingImage(index) {
+                    const imageContainer = document.getElementById(`image-${index}`);
+                    if (imageContainer) {
+                        removedImages.push(index);
+                        imageContainer.style.display = 'none';
+                        
+       
+                        const existingInput = document.querySelector(`input[name="existingImages[]"][value="${imageContainer.querySelector('img').src.split('/').pop()}"]`);
+                        if (existingInput) {
+                            existingInput.remove();
+                        }
+                        
+        
                             const removedInput = document.createElement('input');
                             removedInput.type = 'hidden';
-                            removedInput.name = 'removedImages';
+                            removedInput.name = 'removedImages[]';
                             removedInput.value = index;
                             document.querySelector('form').appendChild(removedInput);
                         }
                     }
-                
                     function validateForm() {
                         let isValid = true;
                         return isValid;

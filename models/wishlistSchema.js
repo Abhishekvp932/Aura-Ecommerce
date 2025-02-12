@@ -11,7 +11,7 @@ const wishlistSchema = new Schema ({
     products:[{
         productId:{
             type:Schema.Types.ObjectId,
-            ref:'Prodect',
+            ref:'Product',
             required:true
         },
         addedOn:{

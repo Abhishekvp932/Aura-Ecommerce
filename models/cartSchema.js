@@ -37,7 +37,10 @@ const cartSchema = new Schema ({
         },
         size:{
             type:String
-        }
+        },
+        productDiscount:{
+            type:Number
+          }
     }]
 })
 

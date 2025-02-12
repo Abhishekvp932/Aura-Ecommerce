@@ -1,8 +1,8 @@
 const mongoose=require('mongoose')
 mongoose.set('strictPopulate', false)
-
 const User = require("../../models/userSchema");
 const env = require("dotenv").config();
+const Razorpay = require("razorpay");
 
 
 const Products = require("../../models/productSchema");
@@ -29,8 +29,7 @@ const loadOrdersPage = async (req, res) => {
         }
        
         const order = await Order.find({userId:user._id}).sort({createdOn:-1}).populate('orderedItems.product');
-        console.log(order);
-        
+            
     //  console.log('akash kunduh',orders)
         return res.render('userOrders', {
             userLoged,
@@ -48,8 +47,17 @@ const orderSummary = async (req,res)=>{
         const id = req.params.id
         console.log('order id is',id)
 
-     
+      
+
+        if(!mongoose.Types.ObjectId.isValid(id)){
+          return res.status(404).redirect('/404')
+        }
+
+
         const orders = await Order.findById(id).populate('orderedItems.product')
+        if(!orders){
+            return res.status(404).redirect('/404')
+        }
 
         console.log(orders)
 
@@ -99,7 +107,7 @@ const orderCancel = async (req, res) => {
     const canceledProduct = order.orderedItems[productIndex];
     const productPrice = canceledProduct.product.regularPrice;
     const productQuantity = canceledProduct.quantity;
-    const canceledSize = canceledProduct.size; // Get the ordered size
+    const canceledSize = canceledProduct.size; 
   
     
     order.orderedItems[productIndex].status = "Cancelled";
@@ -133,10 +141,91 @@ const orderCancel = async (req, res) => {
 };
 
   
+const returnRequest = async(req,res)=>{
+  try {
+    console.log('jnajinjianjnbj ')
+    console.log(req.query);
+    const orderId = req.query.orderId
+    console.log('return id is ',orderId)
+    const productId = req.query.productId
+    console.log('return product id is',productId);
+    const reason = req.query.reason
+    console.log('reason is ',reason)
+   const order = await Order.findById(orderId).populate('orderedItems')
+   console.log('order data',order)
+    const response = await Order.updateOne(
+      {
+        _id:orderId,
+        'orderedItems._id':productId
+      },
+      {
+        $set:{
+          'orderedItems.$.status':'Return Request',
+          'orderedItems.$.returnReason':reason
+        }
+      }
+    )
+    console.log('return uodate products',response);
+    
+    let change=true
+    const allValues = order.orderedItems.forEach(element => {
+      if(element.status != 'Request'){
+        change=false
+        return
+      }
+    });
+
+    if(change){
+      await Order.updateOne({_id:orderId},{status:'Return Request'})
+    }
+    
+    return res.json({
+      success:true,
+      message:'Your Return Request Send SuccessFully',
+      redirectUrl: `/orderSummary${orderId}` 
+    })
+  } catch (error) {
+
+    console.log('product return error',error);
+    return res.json({
+      success:false,
+      message:'return product error'
+    })
+  }
+}
  
+
+
+const verifyPayment = async (req, res) => {
+  try {
+    console.log('jnajj9ajjija9jf9ji9');
+    console.log('ressponse',req.body)
+    const crypto = require("crypto");
+    const {payment_id, order_id, signature } = req.body;
+  console.log(' razorpay_order_id', order_id)
+
+    const generatedSignature = crypto
+      .createHmac("sha256", 'QucZPITL3a19mTmRO5bvA62u')
+      .update(order_id + "|" + payment_id)
+      .digest("hex");
+
+    if (generatedSignature !== signature) {
+      return res.json({ success: false, message: "Payment verification failed" });
+    }
+    
+
+     res.json({ success: true, paymentId: payment_id, redirectUrl: "/userOrders" });
+    await Cart.deleteMany();
+  } catch (error) {
+    console.error("Error verifying payment:", error);
+    return res.json({ success: false, message: "Server error occurred" });
+  }
+};
 module.exports = {
     loadOrdersPage, 
     orderSummary,
     orderCancel,
+    returnRequest,
+    verifyPayment
     
 }

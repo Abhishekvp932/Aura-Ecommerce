@@ -25,11 +25,19 @@ const orderSchema = new Schema({
           },
           status: {
             type: String,
-            enum: ["Ordered", "Cancelled"],
+            enum: ["Ordered", "Cancelled",'Return Request','Returned'],
             default:'Ordered'
           },
           size:{
             type:String
+          },
+          returnReason:{
+            type:String,
+            default:'none',
+            required:false,
+          },
+          productDiscount:{
+            type:Number
           }
         },
       ],
@@ -37,18 +45,18 @@ const orderSchema = new Schema({
         type: Number,
         required: true,
     },
-    discount: {
+    couponDiscount: {
         type: Number,
         default: 0,
     },
     finalAmount: {
         type: Number,
-        required: true,
+       
     },
     address: {
         type: Schema.Types.ObjectId,
         ref: 'Address',
-        required: true,
+      
     },
     invoiceDate: {
         type: Date,
@@ -75,7 +83,9 @@ const orderSchema = new Schema({
     paymentMethod:{
         type:String
         
-    }
+    },
+   
+    
 });
 
 const Order = mongoose.model('Order', orderSchema);

@@ -255,17 +255,24 @@ select.form-control:focus {
                     <% if(offer){ %>
                         <% if(product[i].regularPrice>offer.minPrice && product[i].regularPrice<offer.maxPrice){ %>
                             <p class="price">
-                                <span><del>Price: <%= product[i].regularPrice %></del></span>
+                                <span><del>Price:₹<%= product[i].regularPrice %></del></span>
                                 <span style="color: red;">
-                                  Offer:<%= product[i].regularPrice - ((product[i].regularPrice * offer.offer) / 100) %>
+                                  Offer:₹<%= product[i].regularPrice - ((product[i].regularPrice * offer.offer) / 100) %>
                                 </span>
                             </p>
                         <% }else{ %>
-                            <p class="price"><span>Price: <%=product[i].regularPrice%></span></p>
+                            <p class="price"><span>Price:₹<%=product[i].regularPrice%></span></p>
                         <% } %>
+                    <% }else if(product[i].productOffer){ %>
+                      <p class="price">
+                        <span><del>Price:₹<%= product[i].regularPrice %></del></span>
+                        <span style="color: red;">
+                          Offer:₹<%= product[i].regularPrice-product[i].productOffer %>
+                        </span>
+                    </p>
                     <% }else{ %>
-                        <p class="price"><span>Price: <%=product[i].regularPrice%></span></p>
-                    <% } %>
+                      <p class="price"><span>Price:₹<%=product[i].regularPrice%></span></p>
+                      <% } %>
                   </div>
                   <p class="bottom-area d-flex px-3">
                     <a href="#" class="add-to-cart text-center py-2 mr-1"><span>Add to cart <i class="ion-ios-add ml-1"></i></span></a>
@@ -285,7 +292,7 @@ select.form-control:focus {
                     <li><a href="#">&lt;</a></li>
                     <% for (let i = 1; i <=totalPage; i++) { %>
                       <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-                          <a class="page-link" href="?page=<%= i %>&sort=<%= sortOption %>"><%= i %></a>
+                          <a class="btn btn-primary" href="?page=<%= i %>&sort=<%= sortOption %>"><%= i %></a>
                       </li>
                 <% } %>                  
                     <li><a href="#">&gt;</a></li>

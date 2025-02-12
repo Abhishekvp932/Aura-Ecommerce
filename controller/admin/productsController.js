@@ -229,7 +229,47 @@ const productEdite = async (req, res) => {
     }
   }
   
-  
+  const saveOffer = async(req,res)=>{
+    try {      
+      const {offer} = req.body
+      const {productId} = req.query
+      console.log('offer amount',offer)
+      console.log('offer product id',productId)
+   
+
+      if(!offer){
+        return res.json({
+          success:false,
+          message:"Plase enter a amount"
+        })
+      }
+      const product = await Product.findById(productId)
+      console.log('2');
+      
+      if(!product){
+        return res.json({
+          success:false,
+          message:'product not found'
+        })
+      }
+       
+console.log('1');
+
+        await Product.updateOne({_id:productId},{productOffer:offer})
+        res.json({
+          success:true,
+          message:'offer addedd successfuly'
+        })
+    } catch (error) {
+      console.log('product offer adding error',error)
+      return res.json({
+        success:false,
+        message:"product offer adding error"
+      })
+      
+    }
+  }
+
 module.exports ={
 loadProducts,
 addProductForm,
@@ -238,6 +278,7 @@ productEdite,
 editeProduct,
 productBlock,
 productUnBlock,
+saveOffer
 }
 
 

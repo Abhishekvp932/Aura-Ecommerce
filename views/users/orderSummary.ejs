@@ -108,10 +108,13 @@
   
         .order-info {
           margin-bottom: 10px;
+          color: black;
         }
   
         .order-info span {
           font-weight: bold;
+          color: black;
+          font-size: 20px;
         }
   
         .product-list {
@@ -125,8 +128,8 @@
         }
   
         .product-image {
-          width: 80px;
-          height: 80px;
+          width: 150px;
+          height: 150px;
           margin-right: 15px;
           border: 1px solid #ddd;
           border-radius: 4px;
@@ -139,16 +142,49 @@
           object-fit: cover;
         }
   
-        .product-details {
+        .product-info {
+          
           font-size: 14px;
           color: #666;
         }
   
-        .product-details span {
+        .product-info span {
           display: block;
+          font-size: 20px;
           color: #333;
           font-weight: bold;
         }
+        /* Modal Background */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1; 
+    left: 0;
+    top: 0;
+    width: 300px;
+    height: 400px;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 20px;
+    width: 100px;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Close Button */
+.close {
+    color: red;
+    float: right;
+    font-size: 28px;
+    cursor: pointer;
+}
+
       </style>
     <meta charset="utf-8" />
     <meta
@@ -286,14 +322,14 @@
         <div class="order-details">
           <h2>Order Details</h2>
           <div class="order-info">
-            <p><span>Order ID:</span><%= orders.orderId%></p>
+            <p><span >Order ID:</span><%= orders.orderId%></p>
             <p><span>Order Date:</span><%= new Date(orders.createdOn).toLocaleDateString('en-US', { 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
             }) %> </p>
             <% if(address) {%>
-            <p><span>Delivery Address:</span> <br> <span><%= address.phone %> <br> </span><span><%= address.name %> <br> </span><span><%= address.landMark %></span><br><span><%= address.city %></span><br> <span> <%= address.state %></span><br> <span><%= address.pincode %></span></p>
+            <p><span style="color: black;" >Delivery Address </span> <br> <span><%= address.phone %> <br> </span><span><%= address.name %> <br> </span><span><%= address.landMark %></span><br><span><%= address.city %></span><br> <span> <%= address.state %></span><br> <span><%= address.pincode %></span></p>
             <% } %>
           </div>
   
@@ -308,36 +344,61 @@
                 <img src="/uploads/<%= orders.orderedItems[i].product.productImage[i]%>" alt="Product 1" />
               </a>
               </div>
-              <div class="product-details">
+              <div class="product-info">
                 <span>Product <%= i+1 %></span>
                <span>Product Name:<%= orders.orderedItems[i].product.productName %></span>
                <span>Quantity:<%= orders.orderedItems[i].quantity %></span>
-              <span> Product Price: <%= orders.orderedItems[i].price%></span>
-              <% if(orders.status === 'Delivered'){ %>
-                <a href="#" class="btn btn-info" style="color: white;">Return</a> 
-                <% }else if(orders.orderedItems[i].status !== 'Cancelled' && orders.status !== 'Cancelled'){ %>
-                  <span style="margin-left: 0px;">
-                    <a href="/cancel/<%= orders._id %>/product/<%= orders.orderedItems[i]._id %>" 
-                      class="btn btn-danger" 
-                      style="color: white;" 
-                      onclick="return confirmBlock(event)">
-                     Cancel
-                   </a>                                      
-                  </span>
-                  <% } else { %>
-                    <span class="text-danger">Canceled</span>
-                    <% } %>
+               <span>Discount:₹<%= orders.discount %></span>
+              <span> Product Price:₹<%= orders.orderedItems[i].price%></span>
+              <% if(orders.status === 'Delivered' && orders.orderedItems[i].status !== 'Return Request' && orders.orderedItems[i].status !== 'Cancelled' &&  orders.orderedItems[i].status !== 'Returned'){ %>
+                <button  class="btn btn-primary" style="background-color: #007bff;" id="return" onclick="returnReson('<%= orders.orderedItems[i]._id %>')" >Return</button> 
+                <% }else if(orders.orderedItems[i].status === 'Return Request' || orders.orderedItems[i].status === 'Returned'){ %>
+                  <span class="text-danger">Return request Addedd</span>  
+                  
+                  <% }else if(orders.orderedItems[i].status !== 'Cancelled' && orders.status !== 'Cancelled'  &&  orders.orderedItems[i].status !== 'Returned'){ %>
+                    <span style="margin-left: 0px;">
+                      <a href="/cancel/<%= orders._id %>/product/<%= orders.orderedItems[i]._id %>" 
+                        class="btn btn-danger" 
+                        style="color: white;" 
+                        onclick="return confirmBlock(event)">
+                       Cancel
+                     </a>                                      
+                    </span>
+                    <% }else{ %>
+                      <span class="text-danger">Cancelled</span>
+                      <% } %>
               </div>
             </div>
             <% } %>
           </div>
-          <span>Total: <%= orders.finalAmount %></span>     
+          <span style="color: black; font-size: 20px;">Total Price:<%= orders.finalAmount %></span>     
         </div>
       </div>
     <!-- .section -->
 
     <%-include('../partials/user/footer.ejs')%>
 
+
+    <div id="myModal" class="modal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">reason</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="text" name="return" id="reason" placeholder="Share you return reason" style="width: 400px;">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary close" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="saveBtn" >Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    
     <!-- loader -->
     <div id="ftco-loader" class="show fullscreen">
       <svg class="circular" width="48px" height="48px">
@@ -399,6 +460,62 @@
         });
         return false;
     }
+
+
+  const modal = document.getElementById('myModal');
+  const returnBtn = document.getElementById('return');
+  const closeBtn = document.querySelector('.close');
+  const saveBtn = document.getElementById('saveBtn');
+  const reason = document.getElementById('reason');
+   
+
+  closeBtn.onclick = () =>{
+    modal.style.display = 'none'
+  }
+const returnReson = (productId) =>{
+   
+  modal.style.display ='flex'
+console.log('return product id is',productId)
+
+  document.getElementById('saveBtn').addEventListener('click',()=>{
+    const response = document.getElementById('reason').value;
+    console.log(response);
+    
+    if(response.trim() === ''){
+      alert('plase fill the reason')
+    }else{
+      fetch(`/orderReturn?orderId=<%= orders._id %>&&reason=${response}&&productId=${productId}`,{
+        method:'GET'
+      })
+      .then(response=>response.json())
+      .then(data=>{
+        if(data.success){
+          swal.fire({
+            title:'Return request',
+            text:data.message,
+            
+          })
+          modal.style.display = 'none'
+          const queryString = new URLSearchParams(orders).toString();
+          window.location.href = redirectUrl
+
+        }else{
+          swal.fire({
+            title:'Error',
+            text:'Return Error'
+          })
+        }
+      })
+    }
+      
+  })
+
+
+}
+
+
+
+ 
     </script>
   </body>
 </html>

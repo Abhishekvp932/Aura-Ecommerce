@@ -6,6 +6,7 @@ const Category = require('../../models/categorySchema');
 const offers = require('../../models/offerSchema');
 const Address = require('../../models/addressSchema');
 const Product = require('../../models/productSchema');
+const Order = require('../../models/orderSchema');
 
 const signupEmail = async (req,res)=>{
     try {
@@ -236,6 +237,7 @@ const product = await Product.find()
     } catch (error) {
         console.log("home page not found")
         res.status(500).send('server error')
+       return res.status(404).redirect('/page-404')
     }
 } 
 
@@ -620,10 +622,66 @@ const changePassword = async (req,res)=>{
 const loadWallet = async(req,res)=>{
     try {
         const userLoged = req.session.userLoged
-        return res.render('wallet',{
-            userLoged,
-        })
+   const email = req.session.userEmail
 
+   const user = await User.findOne({email:email})
+   console.log('user id is',user);
+
+   if(!user){
+    req.flash('err','user not found')
+    return res.redirect('/login');
+   }
+
+   const cancellOrders = await Order.aggregate([
+    {$match:{userId:user._id,status:'Cancelled'}},
+    {$unwind:'$orderedItems'},
+    {$group:{_id:'$_id',totalOrderPrice:{$sum:'$orderedItems.price'},orderItems:{$push:'$orderedItems'}}},
+    {$group:{_id:null,totalCancellOrderPrice:{$sum:'$totalOrderPrice'},orders:{$push:'$ROOT'}}}
+   ])
+//   console.log('cancell orders pushing',push);
+
+   console.log('canceel orders details',cancellOrders);
+
+   const orderDetails = await Order.find(
+    { userId: user._id, "orderedItems.status": { $in: ["Cancelled"] } }
+  ).populate('orderedItems.product')
+  
+console.log('order deails in wallet',orderDetails)
+
+const productData = []
+
+orderDetails.forEach(order => {
+    order.orderedItems.forEach(item=>{
+        if(item.status === 'Cancelled'){
+            productData.push({
+                orderid:order._id,
+                createdOn: order.createdOn,
+                productName:item.product?.productName,
+                price:item.price,
+                status:item.status
+            })
+        }
+    })
+});
+console.log('product data',productData)
+
+if(cancellOrders.length>0){
+    const { totalCancellOrderPrice, orders } = cancellOrders[0];
+    res.render('wallet',{
+        userLoged,
+        totalCancellOrderPrice,
+        orders,
+        order:productData
+
+    })
+}else{
+ res.render('wallet',{
+        userLoged,
+        totalCancellOrderPrice:0,
+        orders:[],
+        order:orderDetails
+    })
+}
     } catch (error) {
         console.log('wallet page not found',error)
         res.status(500).send('server error');
@@ -661,8 +719,6 @@ module.exports ={
 
     updatePassword, // password updateing
     changePassword , // user password changing 
-
-
     loadWallet,
     
 }

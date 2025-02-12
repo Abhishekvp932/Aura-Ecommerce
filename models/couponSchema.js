@@ -4,38 +4,41 @@ const { updateSearchIndex } = require('./userSchema');
 const {Schema} = mongoose;
 
 const couponSchema = new Schema({
-    name:{
+    code:{
         type:String,
-        required:true,
         unique:true,
 
     },
     createdOn:{
      type:Date,
      default:Date.now,
-     required:true,
     },
     expireOn:{
         type:Date,
-        required:true
     },
     offerPrice:{
         type:Number,
-        required:true
     },
-    minimumPrice:{
+    minPrice:{
         type:Number,
-        required:true,
+    },
+    maxPrice:{
+        type:Number,
+        
     },
     isList:{
         type:Boolean,
         default:true,
 
     },
-  userId:[{
+    description:{
+        type:String,
+        
+    },
+  couponUsers:[{
     type:Schema.Types.ObjectId,
     ref:'User',
-
+    
   }]
 })
 

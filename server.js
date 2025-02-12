@@ -22,6 +22,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+
 app.use(flash());
 app.use(nocache());
 app.use(express.static(path.join(__dirname,'public')));
@@ -32,6 +33,12 @@ const db=require('./config/db');
 db()
 app.use('/',userRouter);
 app.use('/admin',adminRouter);
+
+
+app.use((req,res)=>{
+    res.status(404)
+     res.render('404')
+})
 
 app.listen(process.env.PORT,()=>{
     console.log('server 3005 is runing');

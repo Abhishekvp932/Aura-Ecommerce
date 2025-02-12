@@ -8,7 +8,7 @@
         year: 'numeric', 
         month: 'long', 
         day: 'numeric' 
-    }) %></p>
+      }) %></p>
     </div>
   </div>
   <div class="shipping-address">
@@ -24,7 +24,7 @@
           <td><%= address?.addressType %></td>
         </tr>
         <tr>
-          <th>Land Mark:</th>
+          <th>Landmark:</th>
           <td><%= address?.landMark %></td>
         </tr>
         <tr>
@@ -36,7 +36,7 @@
           <td><%= address?.pincode %></td>
         </tr>
         <tr>
-          <th>state:</th>
+          <th>State:</th>
           <td><%= address?.state %></td>
         </tr>
       </table>
@@ -50,7 +50,7 @@
           <th>Item</th>
           <th>Quantity</th>
           <th>Order Date</th>
-          <th>status</th>
+          <th>Status</th>
           <th>Price</th>
         </tr>
       </thead>
@@ -72,14 +72,22 @@
               year: 'numeric', 
               month: 'long', 
               day: 'numeric' 
-          }) %></td> 
-          <td><%= orderData.orderedItems[i].status %></td>
-          <td>₹<%= orderData.orderedItems[i].price * orderData.orderedItems[i].quantity %></td>
+            }) %></td> 
+            <td>
+              <% if(orderData.orderedItems[i].status === 'Return Request') {%>
+                <a href="/admin/returnSuccess?data=<%= orderData.orderedItems[i]._id%>&&orderId=<%= orderData._id%>" style="text-decoration: none;background-color: rgb(131, 96, 236);padding: 5px;color: white;border-radius: 15px;"><span class="text-info">Return Request</span></a>
+                <%}else if(orderData.orderedItems[i].status === 'Returned'){ %>
+                  <span class="text-info"  style="text-decoration: none;background-color: rgb(1, 255, 77);padding: 5px;color: white;border-radius: 15px;">Returned</span>
+                  <% }else{ %>
+                    <span style="text-decoration: none;background-color: rgb(236, 61, 3);padding: 5px;color: white;border-radius: 15px;"><%= orderData.orderedItems[i].status %></span>
+                  <% } %>
+            </td>
+            <td>₹<%= orderData.orderedItems[i].price * orderData.orderedItems[i].quantity %></td>
           </tr>
         <% } %>
       </tbody>
     </table>
-    <p>Total Price <%= orderData.finalAmount %></p>
+    <p><strong>Total Price:</strong> ₹<%= orderData.finalAmount %></p>
   </div>
   <div class="update-status">
     <h3>Update Order Status</h3>
@@ -94,108 +102,149 @@
         </select>
         <button type="submit" class="update-button">Update Status</button>
       </form>
-      <% }else{ %>
+      <% } else { %>
         <button class="text-success"  style="background-color: #16a34a;color: white;width: 100px;height: 30px;" disabled>Delivered</button>
-        <% } %>
+      <% } %>
     </div>
   </div>
 </div>
+
 <style>
-.order-details-container {
-  background-color: #1f2937;
-  padding: 2rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  color: #d1d5db;
-  font-size: 1rem;
-}
+  body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f4f7fc;
+    margin: 0;
+    padding: 0;
+  }
 
-.order-header {
-  border-bottom: 1px solid #374151;
-  padding-bottom: 1.5rem;
-  margin-bottom: 1.5rem;
-}
+  .order-details-container {
+    max-width: 1100px;
+    margin: 2rem auto;
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    color: #333;
+  }
 
-.order-header h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
+  .order-header {
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+  }
 
-.order-info p {
-  margin-bottom: 0.5rem;
-}
+  .order-header h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
 
-.shipping-address, .order-items, .update-status {
-  margin-bottom: 2rem;
-}
+  .order-info p {
+    font-size: 1rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+  }
 
-.shipping-address h3, .order-items h3, .update-status h3 {
-  font-size: 1.25rem;
-  font-weight: 500;
-  margin-bottom: 1rem;
-}
+  .shipping-address, .order-items, .update-status {
+    margin-bottom: 2rem;
+  }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+  .shipping-address h3, .order-items h3, .update-status h3 {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #34495e;
+    margin-bottom: 1rem;
+  }
 
-th, td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #374151;
-  color: white;
-}
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
 
-th {
-  font-weight: 500;
-}
+  th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #f2f2f2;
+  }
 
-.item-container {
-  display: flex;
-  align-items: center;
-  background-color: #2a303c;
-  padding: 1rem;
-  border-radius: 0.5rem;
-}
+  th {
+    font-weight: 600;
+    color: #34495e;
+  }
 
-.item-image {
-  margin-right: 1.5rem;
-}
+  td {
+    color: #7f8c8d;
+  }
 
-.item-image img {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 0.5rem;
-}
+  .item-container {
+    display: flex;
+    align-items: center;
+  }
 
-.status-dropdown {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
+  .item-image {
+    margin-right: 1rem;
+  }
 
-.status-dropdown select {
-  background-color: #2a303c;
-  color: #d1d5db;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  border: none;
-  font-size: 1rem;
-}
+  .item-image img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+  }
 
-.update-button {
-  background-color: #22c55e;
-  color: #fff;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
+  .item-details {
+    font-size: 1rem;
+    color: #34495e;
+  }
 
-.update-button:hover {
-  background-color: #16a34a;
-}
+  .update-status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .status-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .status-dropdown select {
+    padding: 0.5rem;
+    font-size: 1rem;
+    background-color: #ecf0f1;
+    border: 1px solid #bdc3c7;
+    border-radius: 0.5rem;
+    color: #34495e;
+  }
+
+  .update-button {
+    background-color: #3498db;
+    color: white;
+    font-size: 1rem;
+    padding: 0.5rem 1.2rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .update-button:hover {
+    background-color: #2980b9;
+  }
+
+  .text-success {
+    background-color: #27ae60;
+    font-size: 1rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 0.5rem;
+    color: white;
+    cursor: not-allowed;
+  }
+
+  .text-success:disabled {
+    background-color: #95a5a6;
+  }
 </style>

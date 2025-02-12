@@ -9,7 +9,7 @@ const offerController = require('../controller/admin/offerController');
 const categoryController = require('../controller/admin/categoryController');
 const productsController = require('../controller/admin/productsController');
 const orderController = require('../controller/admin/orderController');
-
+const couponController = require('../controller/admin/couponController');
 
 
 router.post('/adminVerify',adminController.adminLogin);
@@ -44,6 +44,18 @@ router.post('/offerEdite/:id',adminCheck,offerController.offerEdite);
 
 
 router.get('/orderDetails/:id',adminCheck,orderController.loadOrderDetails);
-router.get('/cancelOrder/:id',orderController.cancelOrder);
-router.post('/updateStatus/:id',orderController.updateStatus);
+router.get('/cancelOrder/:id',adminCheck,orderController.cancelOrder);
+router.post('/updateStatus/:id',adminCheck,orderController.updateStatus);
+router.get('/returnSuccess',adminCheck,orderController.returnSuccess)
+
+router.get('/coupons',adminCheck,couponController.loadCoupons);
+router.get('/addCoupons',adminCheck,couponController.couponAdd);
+router.post('/couponAdd',adminCheck,couponController.addCoupons);
+
+router.get('/deleteCoupon/:id',adminCheck,couponController.couponDelete);
+
+router.get('/salesReport',adminController.salesReport);
+router.post('/download-sales-data',adminController.downloadSalesData)
+router.post('/download-pdf',adminController.downloadPDF)
+router.post('/saveOffer',adminCheck,productsController.saveOffer)
 module.exports = router

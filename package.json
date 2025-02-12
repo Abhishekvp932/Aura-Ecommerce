@@ -18,13 +18,17 @@
     "mongoose": "^8.9.2",
     "multer": "^1.4.5-lts.1",
     "nocache": "^4.0.0",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.9.16",
     "nodemon": "^3.1.9",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "path": "^0.12.7",
+    "pdfkit": "^0.16.0",
+    "razorpay": "^2.9.5",
     "sharp": "^0.33.5",
     "sweetalert2": "^11.15.10",
-    "uuid": "^11.0.5"
+    "uuid": "^11.0.5",
+    "xlsx": "^0.18.5"
   }
 }

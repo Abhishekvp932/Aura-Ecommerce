@@ -2,6 +2,15 @@
 <html lang="en">
   <head>
     <title>Aura-Men</title>
+
+
+    <link
+    href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css"
+    rel="stylesheet"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+
+
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -229,9 +238,16 @@ input[type="radio"]:checked ~ .star-label {
                 <% } else { %>
                   <p class="price"><span>Price: <%= product.regularPrice %></span></p>
                 <% } %>
-              <% } else { %>
+              <% } else if(product.productOffer) { %>
+                <p class="price">
+                  <span><del>Price: <%= product.regularPrice %></del></span>
+                  <span style="color: red;">
+                    Offer: <%= product.regularPrice - product.productOffer %>
+                  </span>
+                </p>
+              <% }else{ %>
                 <p class="price"><span>Price: <%= product.regularPrice %></span></p>
-              <% } %>
+                <% } %>
               <div class="row mt-4">
                 <div class="col-md-6">
                   <div class="form-group d-flex">
@@ -277,7 +293,9 @@ input[type="radio"]:checked ~ .star-label {
               <a href="" class="btn btn-primary">
                 <button type="submit" id="addCart" class="btn btn-primary">Add to Cart</button>
               </a>
-                <a href="" class="btn btn-primary py-3 px-5">Buy now</a>       
+              <a href="" class="btn btn-primary">
+                <button type="submit" id="addWishlist" class="btn btn-primary" onclick="addToWishlist('<%= product._id %>',event)">WishList</button>
+            </a>
             </form>                      
           </div>
         </div>
@@ -466,9 +484,16 @@ input[type="radio"]:checked ~ .star-label {
                             <% }else{ %>
                                 <p class="price"><span>Price ₹: <%=allProduct[i].regularPrice%></span></p>
                             <% } %>
+                        <% }else if(allProduct[i].productOffer){ %>
+                          <p class="price">
+                            <span><del>Price ₹:<%= allProduct[i].regularPrice %></del></span>
+                            <span style="color: red;">
+                              Offer ₹:<%= allProduct[i].regularPrice - allProduct[i].productOffer %>
+                            </span>
+                        </p>
                         <% }else{ %>
-                            <p class="price"><span>Price ₹: <%=allProduct[i].regularPrice%></span></p>
-                        <% } %>
+                          <p class="price"><span>Price: <%= product.regularPrice %></span></p>
+                          <% } %>
                         </div>
                         <p class="bottom-area d-flex px-3">
                           <a href="#" class="add-to-cart text-center py-2 mr-1"><span>Add to cart <i class="ion-ios-add ml-1"></i></span></a>
@@ -588,7 +613,48 @@ document.getElementById('decrease').addEventListener('click', ()=>{
     
   document.getElementById('quantity').value=value-1
 })
+   
+const addToWishlist = async (productId,e) => {
+  e.preventDefault()
+  console.log('Product ID is', productId);
 
+  try {
+    const response = await fetch('/addToWishlist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json', 
+      },
+      body: JSON.stringify({ productId }), 
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      swal.fire({
+        title: 'Success',
+        text: result.message,
+        icon: 'success',
+      })
+    } else {
+      swal.fire({
+        title: 'Error',
+        text: result.message,
+        icon: 'error',
+      });
+    }
+  } catch (error) {
+    console.error('Error adding to wishlist:', error);
+    swal.fire({
+      title: 'Error',
+      text: 'An error occurred while adding to wishlist',
+      icon: 'error',
+    });
+  }
+};
+
+
+
+    
 	  </script>
   </body>
 </html>

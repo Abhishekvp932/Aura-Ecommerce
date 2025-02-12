@@ -36,7 +36,7 @@
             type:Schema.Types.ObjectId,
             ref:"Cart",
         }],
-        wallet:[{
+        wishlistt:[{
             type:Schema.Types.ObjectId,
             ref:"Wishlist",
         }],

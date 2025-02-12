@@ -14,23 +14,34 @@ const { options } = require('../../routes/userRouter');
 
 const shoppingPage = async (req, res) => {
   try {
+    const { priceFrom, priceTo } = req.query;
+
+    console.log('Price Range:', priceFrom, priceTo);
+
     const sort = req.query.sort || ''; 
     let sortCriteria = {};
     if (sort === 'low-to-high') {
-      sortCriteria = { regularPrice: 1 }; 
-      sortCriteria = { regularPrice: -1 }; 
+      sortCriteria = { regularPrice: 1 };
+    } else if (sort === 'high-to-low') {
+      sortCriteria = { regularPrice: -1 };
     }
 
     let page = parseInt(req.query.page, 10) || 1;
     let limit = 9;
 
-    const products = await Products.find({ isBlocked: false }).populate('products.reviews')
+    let filter = { isBlocked: false };
+    if (priceFrom && priceTo) {
+      filter.regularPrice = { $gte: parseInt(priceFrom), $lte: parseInt(priceTo) };
+    }
+
+    const products = await Products.find(filter)
       .sort(sortCriteria)
+      .populate('products.reviews')
       .populate('category')
       .limit(limit)
       .skip((page - 1) * limit);
 
-    const count = await Products.countDocuments({ isBlocked: false });
+    const count = await Products.countDocuments(filter);
     const totalPage = Math.ceil(count / limit);
 
     const userLoged = req.session.userLoged;
@@ -55,6 +66,8 @@ const shoppingPage = async (req, res) => {
       currentPage: page,
       offer,
       sortOption: sort, 
+      priceFrom: priceFrom || '',
+      priceTo: priceTo || ''
     });
   } catch (error) {
     console.error('Shopping page is not found', error);
@@ -63,8 +76,10 @@ const shoppingPage = async (req, res) => {
 };
 
 
+
 const loadProductDetails = async(req,res)=>{
     try {
+      console.log('asdasdasd');
       
         const productId = req.params.id;
         const userLoged = req.session.userLoged;
@@ -76,6 +91,7 @@ const loadProductDetails = async(req,res)=>{
         const offer = await offers.findOne({isActive:true}) 
         const allProduct = await Products.find({category: category._id})
         console.log(allProduct);
+          console.log('asdad');
           
         const userIds = product.reviews.map((review) => review.userId);
         console.log('review user id is',userIds);
