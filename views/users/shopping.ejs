@@ -3,6 +3,15 @@
   <head>
     <title>Aura-Men</title>
     <meta charset="utf-8" />
+
+    <link
+    href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css"
+    rel="stylesheet"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+
+
+
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
@@ -210,7 +219,7 @@
                     </div>
                     <div class="rating">
                       <p class="text-right mb-0">
-                        <% for(let i=0;i<5;i++) { %>
+                        <% for (let i = 0; i < 5; i++) { %>
                           <i class="bi <%= i <= product.rating ? 'bi-star-fill' : 'bi-star' %> text-warning"></i>
                         <% } %>
                       </p>
@@ -218,43 +227,45 @@
                   </div>
                   <h3><a href="#"><%= product[i].productName %></a></h3>
                   <div class="pricing">
-                    <% if(product[i].quantity > 0) { %>
-                    <% if(offer){ %>
-                      <% if(product[i].regularPrice>offer.minPrice && product[i].regularPrice<offer.maxPrice){ %>
-                          <p class="price">
-                              <span><del>Price:₹<%= product[i].regularPrice %></del></span>
-                              <span style="color: red;">
-                                Offer:₹<%= product[i].regularPrice - ((product[i].regularPrice * offer.offer) / 100) %>
-                              </span>
-                          </p>
-                      <% }else{ %>
-                          <p class="price"><span>Price:₹ <%=product[i].regularPrice%></span></p>
+                    <% if (product[i].quantity > 0) { %>
+                      <% 
+                        const productOffer = offer.find(o => o.category.toString() === product[i].category._id.toString());
+                      %>
+                
+                      <% if (productOffer && product[i].regularPrice > productOffer.minPrice && product[i].regularPrice < productOffer.maxPrice) { %>
+                        <p class="price">
+                          <span><del>Price: ₹<%= product[i].regularPrice %></del></span>
+                          <span style="color: red;">
+                            Offer: ₹<%= product[i].regularPrice - ((product[i].regularPrice * productOffer.offer) / 100) - product[i].productOffer %>
+                          </span>
+                        </p>
+                      <% } else if (product[i].productOffer) { %>
+                        <p class="price">
+                          <span><del>Price: ₹<%= product[i].regularPrice %></del></span>
+                          <span style="color: red;">
+                            Offer: ₹<%= product[i].regularPrice - product[i].productOffer %>
+                          </span>
+                        </p>
+                      <% } else { %>
+                        <p class="price"><span>Price: ₹<%= product[i].regularPrice %></span></p>
                       <% } %>
-                  <% }else if(product[i].productOffer){ %>
-                    <p class="price">
-                      <span><del>Price:₹<%= product[i].regularPrice %></del></span>
-                      <span style="color: red;">
-                        Offer:₹<%= product[i].regularPrice - product[i].productOffer %>
-                      </span>
-                  </p>
-                  <% }else{ %>
-                    <p class="price"><span>Price:₹<%= product[i].regularPrice %></span></p>
+                    <% } else { %>
+                      <span class="badge badge-danger">Out of stock</span>
                     <% } %>
-                  <% }else{ %>
-                    <span class="badge badge-danger">out of stock </span>
-                    <%  } %>
                   </div>
                   <p class="bottom-area d-flex px-3">
-                    <a href="/cart" class="add-to-cart text-center py-2 mr-1"><span>Add to cart <i class="ion-ios-add ml-1"></i></span></a>
-                    <a href="#" class="buy-now text-center py-2">wishList<span><i class="ion-ios-cart ml-1"></i></span></a>
+                    <a href="#" class="add-to-cart text-center py-2 mr-1" onclick="addToCart('<%= product[i]._id %>')">
+                      <span>Add to cart <i class="ion-ios-add ml-1"></i></span>
+                    </a>
+                    <a href="#" class="buy-now text-center py-2" onclick="addToWishlist('<%= product[i]._id %>')">
+                      Wishlist <span><i class="ion-ios-cart ml-1"></i></span>
+                    </a>
                   </p>
-                </div>
+                </div>                
               </div>
             </div>
           <% } %>
         </div>
-
-
             <div class="row mt-5">
               <div class="col text-center">
                 <div class="block-27">
@@ -517,6 +528,84 @@
   document.getElementById('sort-high-to-low').addEventListener('click', function () {
     window.location.href = '/shopping?sort=high-to-low';
   });
+
+
+ 
+  const addToCart = async (productId)=>{
+      console.log('product id is',productId)
+       
+      try {
+        const response = await fetch("/addCart", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ productId }),
+          });
+
+          const data = await response.json();
+
+          if(data.success){
+            swal.fire({
+             title:'success',
+             text:'product addedd successfuly',
+             icon:'success'
+            })
+          }else{
+            swal.fire({
+              title:'error',
+              text:data.message,
+              icon:"error"
+            })
+          }
+
+          console.log('data',data);
+      } catch (error) {
+        swa.fire({
+          title:'error',
+          text:"product adding error",
+          icon:'error'
+        })
+      }
+
+
+    }
+
+
+    const addToWishlist = async (productId)=>{
+      console.log('product id is',productId);
+           try {
+            const response = await fetch("/addToWishlist", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ productId }),
+          });
+          const data = await response.json()
+          if(data.success){
+            swal.fire({
+              title:'success',
+              text:data.message,
+              icon:'success'
+            })
+          }else{
+            swal.fire({
+              title:'error',
+              text:data.message,
+              icon:'error'
+            })
+          }
+           } catch (error) {
+            console.log('product adding to wishlist error',error)
+            swal.fire({
+              title:'error',
+              text:'product adding to wishlist error',
+              icon:'error'
+            })
+           }
+    
+    }
 </script>
     
   </body>

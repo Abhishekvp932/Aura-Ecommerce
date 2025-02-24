@@ -6,6 +6,7 @@ const Category = require("../../models/categorySchema");
 const offers = require("../../models/offerSchema");
 const Address = require("../../models/addressSchema");
 const Cart = require("../../models/cartSchema");
+const Offer = require("../../models/offerSchema");
 
 const loadCart = async (req, res) => {
   try {
@@ -45,7 +46,6 @@ const loadCart = async (req, res) => {
     // }, 0);
 const cartItem = await User.findOne({email:email}).populate('carts.products');
 
-console.log('cart user',cartItem)
 
 
     return res.render("cart", {
@@ -110,6 +110,26 @@ const addToCart = async (req, res) => {
       (item) => item.productId.toString() === productId && item.size === size
     );
 
+
+    let categoryOffer = 0;  
+    const offersList = await offers.find({ category: product.category });
+    
+    
+    if (offersList.length > 0) { 
+      for (const offer of offersList) {  
+        if (
+          product.regularPrice > offer.minPrice &&
+          product.regularPrice < offer.maxPrice &&
+          offer.isActive 
+        ) {
+          categoryOffer = product.regularPrice - ((product.regularPrice * offer.offer) / 100)-product.productOffer
+          break; 
+        }
+      }
+    }
+    
+   
+    
     if (existingProduct) {
       const updatedQuantity = existingProduct.quantity + quantity;
       if (updatedQuantity > product.size[size]) {
@@ -118,20 +138,20 @@ const addToCart = async (req, res) => {
       }
 
       existingProduct.quantity = updatedQuantity;
-      existingProduct.totalPrice = existingProduct.price * existingProduct.quantity - product.productOffer
+      existingProduct.totalPrice = existingProduct.price * existingProduct.quantity - product.productOffer -req.session.discount
     } else {
       cart.products.push({
         productId: product._id,
         quantity,
         size,
-        price: product.regularPrice - product.productOffer,
+        price:categoryOffer || product.regularPrice - product.productOffer,
         name: product.productName,
-        totalPrice: product.regularPrice * quantity - product.productOffer,
+        totalPrice:(categoryOffer) * quantity || (product.regularPrice - product.productOffer )*quantity,
         productDiscount:product.productOffer,
       });
     }
-
     
+    cart.totalCartPrice = cart.products.reduce((sum, item) => sum + item.totalPrice, 0);
     await cart.save();
     res.redirect(`/product-details/${productId}`);
   } catch (error) {
@@ -142,17 +162,35 @@ const addToCart = async (req, res) => {
 
 const deleteCart = async (req, res) => {
   try {
+
+    
     const cartId = req.params.cartId;
     const productId = req.params.productId;
-    console.log("cart id", cartId);
-    console.log("product id", productId);
+ 
+    const cart = await Cart.findOne({ _id: cartId });
 
-    const result = await Cart.updateOne(
-      { _id: cartId },
-      { $pull: { products: { _id: productId } } }
-    );
-    console.log("result", result);
+    if (!cart) {
+      return res.status(404).send("Cart not found");
+    }
+
+    const productIndex = cart.products.findIndex(item => item._id.toString() === productId);
+    
+    if (productIndex === -1) {
+      return res.status(404).send("Product not found in cart");
+    }
+
+    cart.totalCartPrice -= cart.products[productIndex].totalPrice;
+
+    cart.products.splice(productIndex, 1);
+    if (cart.products.length === 0) {
+      await Cart.deleteOne({ _id: cartId });
+    } else {
+      
+      await cart.save();
+    }
+
     res.redirect("/cart");
+    
   } catch (error) {
     console.log("cart deleteing error", error);
     res.status(500).send("server error");
@@ -168,8 +206,7 @@ const deleteCart = async (req, res) => {
 const updateCart = async (req, res) => {
   try {
     const { productId, action } = req.body;
-    console.log("Product ID:", productId);
-    console.log("Action:", action);
+  
 
     const email = req.session.userEmail;
     const user = await User.findOne({ email: email });
@@ -226,15 +263,16 @@ const updateCart = async (req, res) => {
     cart.totalPrice = cart.products.reduce((total, item) => {
       return total + item.quantity * cart.products[cartItemIndex].price;
     }, 0);
-    console.log('cart total is', cart.totalPrice)
-   const updateCart = await Cart.updateOne(
-    {
-      _id:cart._id,
-      'products._id':productId
-    },
-    {$set:{'products.$.totalPrice':cart.totalPrice}}
-   );
-    console.log('update cart is',updateCart)
+    
+
+    
+    cart.products[cartItemIndex].totalPrice = cart.products[cartItemIndex].quantity * cart.products[cartItemIndex].price;
+
+    
+    cart.totalCartPrice = cart.products.reduce((sum, item) => sum + item.totalPrice, 0);
+
+    
+    
     
     await cart.save();
 
@@ -261,9 +299,102 @@ const updateCart = async (req, res) => {
   }
 };
 
+//cart adding from listing page
+const addCart = async(req,res)=>{
+  try {
+    const {productId} = req.body
+
+
+    const email = req.session.userEmail
+
+    const product = await Products.findById(productId)
+
+    if(!product){
+      return res.json({
+        success:false,
+        message:"product not found"
+      })
+    }
+
+    const user = await User.findOne({email:email})
+    if(!user){
+      res.json({
+        success:false,
+        message:'User not found'
+      })
+      return res.redirect('/login')
+    }
+
+    const availableSize = Object.keys(product.size).filter((size)=>  product.size[size]>0);
+
+    if(availableSize.length ===0){
+     return res.json({
+         success:false,
+         message:'No available in stock'
+     })
+    }
+
+    const randomSize = availableSize[Math.floor(Math.random() * availableSize.length)];
+ 
+         let cart = await Cart.findOne({userId:user._id})
+ 
+         if(!cart){
+             cart = new Cart({userId:user._id,products:[]})
+         }
+ 
+         const existingProduct = cart.products.find(
+             (item) => item.productId.toString() === productId && item.size === randomSize
+         );
+
+
+         let categoryOffer = 0;  
+         const offersList = await offers.find({ category: product.category });
+         
+         
+         if (offersList.length > 0) { 
+           for (const offer of offersList) {  
+             if (
+               product.regularPrice > offer.minPrice &&
+               product.regularPrice < offer.maxPrice &&
+               offer.isActive 
+             ) {
+               categoryOffer = product.regularPrice - ((product.regularPrice * offer.offer) / 100)-product.productOffer
+               break; 
+             }
+           }
+         }
+         
+ 
+         if (existingProduct) {
+             return res.json({
+                 success: false,
+                 message: "Product is already in the cart!",
+             });
+         }
+            cart.products.push({
+             productId:productId,
+             name:product.productName,
+             quantity:1,
+             price:categoryOffer || product.regularPrice - product.productOffer,
+             totalPrice:categoryOffer || product.regularPrice - product.productOffer,
+             size:randomSize,
+             productDiscount:product.productOffer,            
+            })
+            cart.totalCartPrice = cart.products.reduce((sum, item) => sum + item.totalPrice, 0);
+            await cart.save()
+            return res.json({
+              success:true,
+              message:'productd addedd successfuly'
+            })
+} catch (error) {
+    console.log('listing page product adding to cart error',error);
+    
+  }
+}
 module.exports = {
   loadCart,
   addToCart,
   deleteCart,
   updateCart,
+  addCart
 };

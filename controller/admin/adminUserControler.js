@@ -26,7 +26,6 @@ const loadUsers = async (req, res) => {
         .limit(limit * 1)
         .skip((page - 1) * limit);
       const count = await User.countDocuments();
-      console.log(Users);
       const totalPages = Math.ceil(count / limit);
   
       

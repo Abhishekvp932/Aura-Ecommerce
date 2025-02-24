@@ -40,10 +40,12 @@ const couponAdd = async(req,res)=>{
 const addCoupons = async(req,res)=>{
     try {
         const {code,offerPrice,minPrice,maxPrice,description} = req.body
-          console.log('max price',req.body.maxPrice)
         if(!code||!offerPrice||!minPrice||!maxPrice||!description){
-            req.flash('err','All fields requierd')
-            return res.redirect('/admin/addCoupons')
+           
+            return res.json({
+                success:false,
+                message:'All fields Requierd'
+            })
         }
         const newData = {
             code:code,
@@ -52,10 +54,12 @@ const addCoupons = async(req,res)=>{
             maxPrice:maxPrice,
             description:description
         }
-        console.log('coupon data',newData)
         const coupon = await Coupon.insertMany(newData)
-        res.redirect('/admin/coupons')
-        console.log('coupon addedd success fully')
+       return res.json({
+        success:true,
+        message:'Coupon Applied successfuly',
+        redirectUrl:'/admin/coupons'
+       })
 
     } catch (error) {
         console.log('coupon adding error',error)
@@ -67,12 +71,10 @@ const couponDelete = async(req,res)=>{
     try {
        const {id} = req.params
 
-       console.log('delete coupon id is ',id)
 
     const result = await Coupon.deleteOne({_id:id})
     res.redirect('/admin/coupons')
 
-    console.log('result is',result)
 
     } catch (error) {
         console.log('coupon deleteing error',error)

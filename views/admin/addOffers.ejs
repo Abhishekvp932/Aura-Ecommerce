@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+
+
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
     <link rel="stylesheet" href="/css/tailwind.output.css" />
     <link
@@ -112,7 +118,7 @@
         <div class="card">
             <h2 style="margin-bottom: 20px;">Add New Offer</h2>
             
-            <form action="/admin/offerAdd" method="post">
+            <form>
                 <div class="form-group">
                     <label for="category">Category:</label>
                     <select id="category" name="category">
@@ -153,9 +159,72 @@
                     </div>
                 </div>
 
-                <button type="submit" class="button">Add Offer</button>
+                <button class="button" id="btn">Add Offer</button>
             </form>
         </div>
     </div>
+
+    <script>
+
+document.getElementById('btn').addEventListener('click',async(e)=>{
+e.preventDefault()
+const categoryy = document.getElementById('category').value;
+const startDate = document.getElementById('startDate').value;
+const endDate = document.getElementById('endDate').value;
+const minPrice = document.getElementById('minPrice').value;
+const maxPrice = document.getElementById('maxPrice').value;
+const offer = document.getElementById('offer').value
+
+
+if(categoryy =='' || startDate == '' || endDate =='' || minPrice == '' || maxPrice == '' || offer == ''){
+    swal.fire({
+        title:'warning',
+        text:'All Field Requierd',
+        icon:'error'
+    })
+}
+console.log('1')
+
+
+try {
+    const response = await fetch('/admin/offerAdd',{
+        method:"POST",
+        headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+               categoryy,
+               startDate,
+               endDate,
+               minPrice,
+               maxPrice,
+               offer
+         })
+    })
+    console.log('resposne is',response)
+    const data = await response.json()
+    console.log('data ',data)
+    if(data.success){
+        swal.fire({
+            title:'success',
+            text:data.message,
+            icon:'success'
+        })
+        window.location.href = data.redirectUrl
+    }else{
+        swal.fire({
+            title:'error',
+            text:data.message,
+            icon:'error'
+        })
+    }
+} catch (error) {
+    swal.fire({
+        title:'error',
+        text:'error when add offer',
+        icon:'error'
+    })
+}
+})
+
+    </script>
 </body>
 </html>

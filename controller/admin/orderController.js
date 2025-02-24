@@ -11,7 +11,7 @@ const Product = require("../../models/productSchema");
 const router = require("../../routes/userRouter");
 const Address = require("../../models/addressSchema");
 const Order = require("../../models/orderSchema");
-
+const Wallet = require("../../models/walletSchema")
 const loadAdminOrders = async (req, res) => {
   try {
 
@@ -104,13 +104,10 @@ const loadAdminOrders = async (req, res) => {
 const loadOrderDetails = async (req, res) => {
   try {
     const id = req.params.id;
-    console.log("order id is ", id);
 
       const orders = await Order.findOne({_id:id}).sort({createdOn:-1}).populate('orderedItems.product')
 
-      console.log(orders)
 
-      console.log("address i",orders.address)
 
     const address = await Address.findOne({
       "addresses._id": orders.address,  
@@ -124,7 +121,6 @@ const loadOrderDetails = async (req, res) => {
     } else {
       console.log("No address found");
     }
-    console.log(orders)
 
     return res.render("orderDetails",{orderData:orders,address:selectedAddress})
    
@@ -137,13 +133,11 @@ const loadOrderDetails = async (req, res) => {
 const cancelOrder = async (req, res) => {
   try {
     const id = req.params.id;
-    console.log(id);
     const data = await Order.findByIdAndUpdate(
       id,
       { $set: { status: "Cancelled" } },
       { new: true }
     );
-    console.log("update data", data);
     res.redirect("/admin/orders");
   } catch (error) {
     console.log("cancel order is not working", error);
@@ -153,7 +147,6 @@ const cancelOrder = async (req, res) => {
 const updateStatus = async (req, res) => {
   try {
     const id = req.params.id;
-    console.log("update order id", id);
     const { newStatus } = req.body;
     const validStatuses = ["Pending", "Shipped", "Delivered", "Canceled"];
     if (!validStatuses.includes(newStatus)) {
@@ -173,47 +166,212 @@ const updateStatus = async (req, res) => {
 };
 
 
- const returnSuccess = async (req,res)=>{
+const returnSuccess = async (req, res) => {
   try {
+    const id = req.query.data;
+    const orderId = req.query.orderId;
+    const email = req.session.userEmail;
+
+    const user = await User.findOne({ email: email });
+        
+    const data = await Order.updateOne(
+      { _id: orderId, 'orderedItems._id': id },
+      { $set: { 'orderedItems.$.status': 'Returned' } }
+    );
+
+  
+    const order = await Order.findById(orderId).populate('orderedItems');
+
+    const allReturned = order.orderedItems.every(item => item.status === 'Returned');
    
-    const id = req.query.data
-    const orderId = req.query.orderId
-    console.log('update id product is',id)
-    console.log('update id  is',orderId)
 
-
- const data = await Order.updateOne(
-      {
-        _id:orderId,
-        'orderedItems._id':id
-      },
-      {
-        $set:{
-          'orderedItems.$.status':'Returned',
-        }
-      }
-    )
-    const order = await Order.findById(orderId).populate('orderedItems')
- 
-
-    let change = order.orderedItems.every((item)=> item.status == 'Returned');
-console.log('cahngw data is',change);
-    if(change){
-      const updateData = await Order.updateOne({_id:orderId},{status:'Returned'})
-      console.log('updated data is ',updateData);
+    if (allReturned) {
+      await Order.updateOne({ _id: orderId }, { status: 'Returned' });
     }
 
-    console.log('data is ',data)
-    res.redirect(`/admin/orderDetails/${orderId}`)
+    const returnedItem = order.orderedItems.find(item => item._id.toString() === id);
+    if (!returnedItem) {
+      return res.status(404).json({ message: "Returned product not found in order" });
+    }
+
+    
+
+    const productData = {
+      orderId: order._id,
+      createdOn: new Date(),
+      productName: returnedItem.product?.productName || "Unknown Product",
+      price: returnedItem.totalPrice,
+      status: 'Credit',
+      orderStatus: 'Returned'
+    };
+
+   
+    let wallet = await Wallet.findOne({ userId: user._id });
+
+    if (!wallet) {
+      
+      wallet = new Wallet({
+        userId: user._id,
+        balance: returnedItem.totalPrice,
+        walletData: [productData]
+      });
+      await wallet.save();
+    } else {
+   
+      await Wallet.updateOne(
+        { userId: user._id },
+        {
+          $inc: { balance: returnedItem.totalPrice }, 
+          $push: { walletData: productData }          
+        }
+      );
+    }
+
+    res.redirect(`/admin/orderDetails/${orderId}`);
+
   } catch (error) {
-    console.log('order return error in admin side',error)
-    res.status(500).send('server error')
+    console.error('Order return error (Admin Side):', error);
+    res.status(500).send('Server error');
   }
- }
+};
+
+
+const rejectReturn = async (req,res)=>{
+  
+  try {
+    
+   const id = req.query.data.trim();
+   const orderId = req.query.orderId.trim()
+
+   const data = await Order.updateOne(
+    { _id: orderId, 'orderedItems._id':id },
+    { $set: { 'orderedItems.$.status': 'Return Denied' } }
+  );
+
+
+  const order = await Order.findById(orderId).populate('orderedItems');
+
+  const allReturned = order.orderedItems.every(item => item.status === 'Return Denied');
+
+  if (allReturned) {
+    await Order.updateOne({ _id: orderId }, { status: 'Return Denied' });
+  }
+  res.redirect(`/admin/orderDetails/${orderId}`)
+
+  } catch (error) {
+    console.log('order rejecting error',error);
+  }
+}
+
+const returnApprov = async (req, res) => {
+  try {
+    const { orderId } = req.query;
+
+    if (!orderId) {
+      return res.json({ success: false, message: "Order ID is required" });
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order Not found"
+      });
+    }
+
+  
+    const update = await Order.updateOne(
+      { _id: orderId },
+      { 
+        $set: { 
+          status: "Returned", 
+          "orderedItems.$[].status": "Returned" 
+        } 
+      }
+    );
+
+    const orders = await Order.findById(orderId).populate("orderedItems");
+
+    if (!orders) {
+      return res.status(404).json({ success: false, message: "Order not found after update" });
+    }
+
+    const productData = {
+      orderId: orders._id,
+      createdOn: new Date(),
+      price: orders.totalPrice,
+      status: "Credit",
+      orderStatus: "Returned"
+    };
+
+    let wallet = await Wallet.findOne({ userId: orders.userId });
+
+    if (!wallet) {
+      wallet = new Wallet({
+        userId: orders.userId,
+        balance: orders.totalPrice,
+        walletData: [productData]
+      });
+      await wallet.save();
+    } else {
+      await Wallet.updateOne(
+        { userId: orders.userId },
+        {
+          $inc: { balance: orders.totalPrice },
+          $push: { walletData: productData }          
+        }
+      );
+    }
+
+    return res.json({ success: true, message: "Return request Approved" });
+  } catch (error) {
+    console.error("Error in returnApprov:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
+
+
+const returnReject = async(req,res)=>{
+  try {
+    const {orderId} = req.query
+
+    const order = await Order.findById(orderId)
+    if(!order){
+      return res.json({
+        success:false,
+        message:'Order Not FOund'
+      })
+    }
+
+    const update = await Order.updateOne(
+      { _id: orderId }, 
+      { 
+          $set: { 
+              status: 'Return Denied',  
+              'orderedItems.$[].status': 'Return Denied'
+          } 
+      }
+  );
+  
+    return res.json({success:true,message:'Return rejected'})
+
+  } catch (error) {
+    
+  }
+}
+
+
+
 module.exports = {
   loadAdminOrders,
   loadOrderDetails,
   cancelOrder,
   updateStatus,
-  returnSuccess
+  returnSuccess,
+  returnApprov,
+  returnReject,
+  rejectReturn
 };

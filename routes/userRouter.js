@@ -75,8 +75,11 @@ router.get('/allCoupon',userCheck,couponController.findAllCoupon)
 router.get('/get-address/:id',userCheck,checkoutController.getAddrss);
 router.post('/update-address/:id',userCheck,checkoutController.updateAddress)
 router.post('/verify-payment',orderController.verifyPayment);
-
-
+router.post('/addCart',cartController.addCart)
+router.post('/placeFieldOrders',orderController.placeFieldOrders)
+router.post('/retry-payment',userCheck,orderController.retryPayment)
+router.post('/verifyPayment',orderController.retryPaymentVerify)
+router.get('/downloadInvoice',orderController.downloadInvoice)
 
 router.get('/auth/google',passport.authenticate('google'));
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/login'}),(req,res)=>{

@@ -8,6 +8,8 @@ const Address = require('../../models/addressSchema');
 const Product = require('../../models/productSchema');
 const Order = require('../../models/orderSchema');
 
+const Wallet = require('../../models/walletSchema')
+
 const signupEmail = async (req,res)=>{
     try {
         return res.render('verifyEmail',{msg:req.flash('emailReq')})
@@ -79,7 +81,7 @@ const sendOTP = async (req,res)=>{
           },60000)
         
         res.render('otpVerify',{msg:req.flash('errorMsg')})
-        console.log('otp is ',otp);
+        
 
     } catch (error) {
         console.log('email verification page not found')
@@ -103,9 +105,8 @@ const resendOTP = async(req,res)=>{
                     console.log('Error deleting session');
                 }
             })
-            console.log('otp expired');
           },60000);
-          console.log('resend otp is',otp);
+          
     await sendVerificationEmail(email,otp);
      req.flash('succesMsg','Otp resend successfully');
      res.redirect('/otpVerify');
@@ -128,10 +129,7 @@ const verifyOtp = async (req, res) => {
       }
   
      
-      const { otp } = req.body;
-      console.log('Received OTP:', otp);
-      console.log('Stored OTP:', storedOtp);
-  
+      const { otp } = req.body;  
       // Validate OTP
       if (otp !== storedOtp) {
         req.flash('errorMsg', 'Invalid OTP. Please try again.');
@@ -182,12 +180,24 @@ const loginUser = async (req, res) => {
     }
 };
 
+function genarateRefferalCode(length = 8){
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let refferalCode = '';
+    for(let i=0;i<length;i++){
+        refferalCode  += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return refferalCode;
+}
+
 
 const signup = async(req,res)=>{    
     const email = req.session.userEmail;
-     const {name,password,confirmpassword,phone  } = req.body;
-    //  console.log(req.body);
-     
+     const {name,password,confirmpassword,phone,referralCode} = req.body;
+
+     let refferal = genarateRefferalCode();
+
+
+
      const passwordpattern = /^[A-Za-z0-9]{6,}$/
      if(!passwordpattern.test(password)){
         req.flash('err','password doesnt match the criteria')
@@ -199,14 +209,35 @@ const signup = async(req,res)=>{
          req.flash('err','all filed must be required')
          res.render('signup',{msg:req.flash('err')})
      }
-     await User.insertMany({
+    const newUser =  await User.insertMany({
         email:email,
         name:name,
         phone:phone,
         password:password,
-        confirmpassword:confirmpassword
+        confirmpassword:confirmpassword,
+        referalCode:refferal,
+        referredBy:referralCode
+
      })
+
+     let walletAmount = 0;
+     if(referralCode){
+        const reffer = await User.findOne({referalCode:referralCode})
+
+        if(reffer){
+            walletAmount  = 50
+
+            let refferWallet = await Wallet.findOne({userId:reffer._id})
+            if(refferWallet){
+                await Wallet.updateOne({userId:reffer._id},{$inc:{balance:100}})
+            }else{
+                await Wallet.create({userId:reffer._id,balance:100})
+            }
+        }
+     }
+     await Wallet.create({userId:newUser[0]._id,balance:walletAmount});
      req.session.userLoged = true,
+
        res.render('login',{mg:req.flash('err')});
 }
 const loadSignup = async(req,res)=>{
@@ -312,7 +343,6 @@ const sendForgotPassOTP =async (req,res)=>{
           },60000)
         
         res.render('repassOtp')
-        console.log('otp is ',otp);
 
     } catch (error) {
         console.log('forgot password otp is not working',error);
@@ -342,8 +372,7 @@ const forgotOtpVerify = async(req,res)=>{
     
        
         const { otp } = req.body;
-        console.log('Received OTP:', otp);
-        console.log('Stored OTP:', storedOtp);
+
     
         // Validate OTP
         if (otp !== storedOtp) {
@@ -410,16 +439,12 @@ const loadAddress = async(req,res)=>{
     try {
         const userLoged = req.session.userLoged
        const email =  req.session.userEmail 
-       console.log(email)
        const user = await User.findOne({email:email})
-       console.log(user)
         const addres = await Address.findOne({userId:user._id}).populate('addresses')
-        console.log('user address',addres)
-        return res.render('address',{
+            return res.render('address',{
             userLoged,
             addres:addres
         });
-        console.log(addres)
     } catch (error) {
         console.log('address page not found',error);
         res.status(500).send('server error');
@@ -443,7 +468,6 @@ const loadAddAddress = async(req,res)=>{
 const addressAdd = async(req,res)=>{
     try {
          const {name, addressType,landMark,city,pincode,phone,altPhone,state} = req.body
-         console.log('Request body:', req.body);
 
          if(name == ''|| addressType==''||landMark==''||city==''||pincode==''||phone==''||altPhone==''||state==''){
             req.flash('err','All field required');
@@ -479,7 +503,6 @@ const loadEditeAddress = async(req,res)=>{
     try {
         const userLoged = req.session.userLoged
         const id = req.params.id
-        console.log('edite address id is',id)
 
         const addressDocument = await Address.findOne({
             "addresses._id": id,
@@ -500,7 +523,6 @@ const editAddress = async(req,res)=>{
         const email = req.session.userEmail
         const id = req.params.id
         const user = await User.findOne({email:email})
-        console.log(id)
         const addressData = {  
             name: name,
             state:state,
@@ -528,13 +550,11 @@ const editAddress = async(req,res)=>{
 const deleteAddress = async(req,res)=>{
     try {
         const id = req.params.id
-        console.log('delete address id is',id)
       
         const result = await Address.updateOne(
             { "addresses._id": id }, 
             { $pull: { addresses: { _id: id } } } 
           );
-      console.log('add data',result)
         res.redirect('/address');
     } catch (error) {
         console.log('address deleting error',error);
@@ -548,7 +568,6 @@ const profileEdite = async(req,res)=>{
         const userLoged = req.session.userLoged
         const id = req.params.id 
         const findUser = await User.findById(id); 
-        console.log(findUser)  
         return res.render('profileEdite',{
             findUser,
             userLoged
@@ -568,7 +587,6 @@ const editeProfile = async(req,res)=>{
             phone:phone,
             email:email,
         }
-        console.log(newData)
         await User.updateOne({_id:id},{$set:newData})
         res.redirect('/userProfile');
 
@@ -593,7 +611,6 @@ const changePassword = async (req,res)=>{
     try {
         const {oldPassword,newPassword,cnfmPassword} = req.body
         const email = req.session.userEmail
-        console.log('passwords is',req.body)
 
         const userData = await User.findOne({password:oldPassword})
         if(oldPassword == ''|| newPassword == ''|| cnfmPassword == ''){
@@ -619,74 +636,56 @@ const changePassword = async (req,res)=>{
 
 
 
-const loadWallet = async(req,res)=>{
+const loadWallet = async (req, res) => {
     try {
-        const userLoged = req.session.userLoged
-   const email = req.session.userEmail
+        let page = parseInt(req.query.page, 10) || 1;
+        let limit = 4;
+        let skip = (page - 1) * limit;
 
-   const user = await User.findOne({email:email})
-   console.log('user id is',user);
+        const userLoged = req.session.userLoged;
+        const email = req.session.userEmail;
 
-   if(!user){
-    req.flash('err','user not found')
-    return res.redirect('/login');
-   }
-
-   const cancellOrders = await Order.aggregate([
-    {$match:{userId:user._id,status:'Cancelled'}},
-    {$unwind:'$orderedItems'},
-    {$group:{_id:'$_id',totalOrderPrice:{$sum:'$orderedItems.price'},orderItems:{$push:'$orderedItems'}}},
-    {$group:{_id:null,totalCancellOrderPrice:{$sum:'$totalOrderPrice'},orders:{$push:'$ROOT'}}}
-   ])
-//   console.log('cancell orders pushing',push);
-
-   console.log('canceel orders details',cancellOrders);
-
-   const orderDetails = await Order.find(
-    { userId: user._id, "orderedItems.status": { $in: ["Cancelled"] } }
-  ).populate('orderedItems.product')
-  
-console.log('order deails in wallet',orderDetails)
-
-const productData = []
-
-orderDetails.forEach(order => {
-    order.orderedItems.forEach(item=>{
-        if(item.status === 'Cancelled'){
-            productData.push({
-                orderid:order._id,
-                createdOn: order.createdOn,
-                productName:item.product?.productName,
-                price:item.price,
-                status:item.status
-            })
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            req.flash('err', 'User not found');
+            return res.redirect('/login');
         }
-    })
-});
-console.log('product data',productData)
 
-if(cancellOrders.length>0){
-    const { totalCancellOrderPrice, orders } = cancellOrders[0];
-    res.render('wallet',{
-        userLoged,
-        totalCancellOrderPrice,
-        orders,
-        order:productData
+        // First, get the total count of walletData transactions
+        const wallet = await Wallet.findOne({ userId: user._id }).populate('walletData');
+        
+        if (!wallet) {
+             res.render('wallet', {
+                userLoged,
+                wallet:[],
+                totalPage: 0,
+                currentPage: page, 
+                data:0,
+            });
+        }
 
-    })
-}else{
- res.render('wallet',{
-        userLoged,
-        totalCancellOrderPrice:0,
-        orders:[],
-        order:orderDetails
-    })
-}
+        const totalRecords = wallet.walletData.length;
+        const totalPage = Math.ceil(totalRecords / limit);
+
+        const paginatedWalletData = wallet.walletData.slice(skip, skip + limit);
+       const balance = await Wallet.findOne({userId:user._id})
+      
+        
+
+        res.render('wallet', {
+            wallet: { ...wallet, walletData: paginatedWalletData },
+            userLoged,
+            data:wallet,
+            totalPage,
+            currentPage: page
+        });
     } catch (error) {
-        console.log('wallet page not found',error)
-        res.status(500).send('server error');
+        console.log('Wallet page not found', error);
+        res.status(500).send('Server error');
     }
-}
+};
+
+
 module.exports ={
     loadHome,  //home page loading
     pageNotFound, //page not found page

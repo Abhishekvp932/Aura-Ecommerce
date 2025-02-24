@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Minishop - Free Bootstrap 4 Template by Colorlib</title>
+    <title>Aura-Men</title>
 
     <link
       href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css"
@@ -218,7 +218,7 @@
             <div class="card h-100 shadow-sm">
               <div class="card-body">
                 <h4 class="card-title text-center mb-4">Wallet Balance</h4>
-                <h2 class="text-center text-primary mb-4">₹<%= totalCancellOrderPrice%></h2>
+                <h2 class="text-center text-primary mb-4">₹<%= data.balance %></h2>
                 <div class="d-grid gap-2">
                   <button class="btn btn-primary btn-lg mb-2">Add Money</button>
                   <button class="btn btn-outline-primary btn-lg">Withdraw</button>
@@ -289,41 +289,59 @@
                       <tr>
                         <th>Date</th>
                         <th>Order id</th>
-                        <th>product Name</th>
                         <th>Amount</th>
-                        <th>Status</th>
+                        <th>transactions</th>
+                        <th>OrderStatus</th>
                       </tr>
                     </thead>
                     <tbody>
                    
-                     <% for(let i=0;i<order.length;i++){ %>
+                 <% for(let i=0;i<wallet.walletData.length;i++) {%>
                       <tr>
-                        <td><%= new Date(order[i].createdOn).toLocaleDateString('en-US', { 
+                        <td><%= new Date(wallet.walletData[i].createdOn).toLocaleDateString('en-US', { 
                           year: 'numeric', 
                           month: 'long', 
                           day: 'numeric' 
                       }) %></td>
-                        <td><%=order[i].orderid %></td>
-                        <td><%= order[i].productName%></td>
-                        <td class="text-danger">₹<%= order[i].price %></td>
-                        <td><span class="badge bg-danger" style="color: white;"><%= order[i].status%></span></td>
+                        <td><%= wallet.walletData[i].orderId%></td>
+                        <td class="text-danger">₹<%= wallet.walletData[i].price %></td>
+                        <% if(wallet.walletData[i].status === 'Credit') {%>
+                        <td><span class="badge bg-success" style="color: white;">Credit</span></td>
+                        <% }else{ %>
+                          <td><span class="badge bg-danger" style="color: white;">Debit</span></td>
+                          <% } %>
+                        <td><span class="badge bg-danger" style="color: white;"><%= wallet.walletData[i].orderStatus %></span></td>
                       </tr>
-                   <% } %>
+                      <% } %>
                     </tbody>
                   </table>
                 </div>
                 
                 <nav aria-label="Transaction history navigation">
-                  <ul class="pagination justify-content-center mt-4">
-                    <li class="page-item disabled">
-                      <a class="page-link" href="#" tabindex="-1">Previous</a>
-                    </li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item">
-                      <a class="page-link" href="#">Next</a>
-                    </li>
+                  <ul class="pagination inline-flex items-center">
+                    <% if (totalPage > 1) { %>
+                      <ul class="pagination">
+                        
+                        <!-- Previous Button -->
+                        <li class="page-item <%= (currentPage === 1) ? 'disabled' : '' %>">
+                          <a class="page-link" href="?page=<%= currentPage - 1 %>">Previous</a>
+                        </li>
+                    
+                        <!-- Page Numbers -->
+                        <% for (let i = 1; i <= totalPage; i++) { %>
+                          <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                          </li>
+                        <% } %>  
+                    
+                     
+                        <li class="page-item <%= (currentPage === totalPage) ? 'disabled' : '' %>">
+                          <a class="page-link" href="?page=<%= currentPage + 1 %>">Next</a>
+                        </li>
+                        
+                      </ul>
+                    <% } %>
+                                         
                   </ul>
                 </nav>
               </div>

@@ -41,11 +41,74 @@ const loadDashboard = async (req, res) => {
     };
     const pendingOrders = await Order.countDocuments({ status: 'Pending' });
     const order = await Order.find().sort({finalAmount:-1}).limit(10)
+   const topOrders = await Order.aggregate(
+    [
+      {$unwind:"$orderedItems"},
+      {$group:{
+        _id:"$orderedItems.product",
+        orderCount:{$sum:1}
+      }
+    },
+    {$sort:{orderCount:-1}},
+    {$limit:10},
+    {$lookup:
+      {from:"products",
+         localField:"_id",
+         foreignField:"_id",
+         as:"productDetails"
+      }
+    },
+    {$unwind:'$productDetails'},
+    {$project:{_id:0,productId:"$_id",name:"$productDetails.productName",orderCount:1}}
+    ]
+   )
+   console.log('top ordered products',topOrders);
+
+
+   const topCategories = await Order.aggregate(
+    [
+      {$unwind:"$orderedItems"},
+       {
+        $lookup:{
+          from:"products",
+          localField:"orderedItems.product",
+          foreignField:"_id",
+          as:"productDetails"
+        }
+       },
+       {$unwind:"$productDetails"},
+       {$group:{
+        _id:"$productDetails.category",categoryCount:{$sum:1}
+       }},
+       {$sort:{categoryCount:-1}},
+       {$limit:10},
+       {$lookup:
+        {from:"categories",
+          localField:"_id",
+          foreignField:"_id",
+          as:"categoryDetails"
+
+        }
+       },
+       {$unwind:"$categoryDetails"},
+       {$project:{
+        _id:0,
+        category:"$_id",
+        name:"$categoryDetails.name",
+        categoryCount:1
+       }}
+    ]
+   )
+
+   console.log('topcategories',topCategories);
+   
     return res.render('dashboard', {
       orders: salesData,
       userCount,
       order,
-      pendingOrders
+      pendingOrders,
+      products:topOrders,
+      category:topCategories,
       
     });
   } catch (error) {
@@ -182,7 +245,7 @@ console.log('sales data when downloading',salesData)
     const endDate = new Date(endDatee);
     endDate.setHours(23, 59, 59, 999);
 
-    const orders = await Order.find({ createdOn: { $gte: startDate, $lte: endDate }}).populate('orderedItems')
+    const orders = await Order.find({ createdOn: { $gte: startDate, $lte: endDate }, status:'Delivered'}).populate('orderedItems')
 
     if (!orders.length) {
       return res.status(404).json({ error: "No sales data found for the selected date" });
@@ -191,7 +254,7 @@ console.log('sales data when downloading',salesData)
     const data = orders.map(order => {
         return {
         "Order ID": order._id.toString(),
-        "Amount (₹)": order.finalAmount.toFixed(2),
+        "Amount (₹)": order.finalAmount,
         "Items Sold": order.orderedItems.length,
         "Status": order.status,
         "Date": new Date(order.createdOn).toLocaleDateString(),
@@ -264,7 +327,6 @@ console.log('sales data when downloading',salesData)
 
 const downloadPDF = async (req, res) => {
   try {
-    
     const { startDatee, endDatee, salesData } = req.body;
     console.log("PDF Download Date:", startDatee, endDatee);
 
@@ -272,7 +334,7 @@ const downloadPDF = async (req, res) => {
     const endDate = new Date(endDatee);
     endDate.setHours(23, 59, 59, 999);
 
-    const orders = await Order.find({ createdOn: { $gte: startDate, $lte: endDate } });
+    const orders = await Order.find({ createdOn: { $gte: startDate, $lte: endDate } ,status:'Delivered'});
 
     if (!orders.length) {
       return res.status(404).json({ error: "No sales data found for the selected date" });
@@ -311,7 +373,7 @@ const downloadPDF = async (req, res) => {
     doc.fontSize(10).fillColor("#fff").rect(startX, startY, 500, 20).fill("#007bff");
     doc.fillColor("#fff");
     doc.text("Order ID", startX + 10, startY + 5);
-    doc.text("Date", startX + 120, startY + 5);
+    doc.text("Date", startX + 150, startY + 5);
     doc.text("Order Amount", startX + 220, startY + 5);
     doc.text("Discount", startX + 320, startY + 5);
     doc.text("Coupon", startX + 420, startY + 5);
@@ -330,8 +392,8 @@ const downloadPDF = async (req, res) => {
      
 
       doc.fillColor("#000").fontSize(10);
-      doc.text(order._id.toString().substring(0, 8) + "...", startX + 10, startY + 5);
-      doc.text(new Date(order.createdOn).toLocaleDateString(), startX + 120, startY + 5);
+      doc.text(order._id.toString().substring(0, 30) + "", startX + 10, startY + 5);
+      doc.text(new Date(order.createdOn).toLocaleDateString(), startX + 150, startY + 5);
       doc.text(order.finalAmount.toFixed(2), startX + 220, startY + 5);
       doc.text( productDiscount, startX + 320, startY + 5);
       doc.text(order.couponDiscount ? order.couponDiscount.toFixed(2) : "0", startX + 420, startY + 5);
@@ -350,6 +412,62 @@ const downloadPDF = async (req, res) => {
 };
 
 
+const Chart = async(req, res) => {
+  try {
+    let { filter } = req.query; 
+    console.log('filter:', filter);
+    
+    let matchStage = {}; 
+
+   
+    if (!filter) filter = "monthly";
+
+    if (filter === "yearly") {
+        matchStage = { createdOn: { $gte: new Date(new Date().getFullYear(), 0, 1) } };
+    } else if (filter === "monthly") {
+        let startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        matchStage = { createdOn: { $gte: startOfMonth } };
+    } else if (filter === "weekly") {
+        let startOfWeek = new Date();
+        startOfWeek.setDate(startOfWeek.getDate() - 7);
+        matchStage = { createdOn: { $gte: startOfWeek } };
+    } else {
+       
+        matchStage = {};
+    }
+    
+  
+    console.log('Match stage:', matchStage);
+    
+    const salesData = await Order.aggregate([
+        { $match: matchStage }, 
+        {
+            $group: {
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdOn" } }, 
+                totalSales: { $sum: "$finalAmount" }
+            }
+        },
+        { $sort: { _id: 1 } } 
+    ]);
+
+    console.log('Sales data:', salesData);
+    
+
+    if (!salesData || salesData.length === 0) {
+        return res.json({ labels: [], values: [], message: "No data found for the selected period" });
+    }
+
+    const labels = salesData.map((data) => data._id);
+    const values = salesData.map((data) => data.totalSales);
+console.log('labels ',labels)
+console.log('values',values)
+    res.json({ labels, values });
+  } catch (error) {
+    console.error("Chart aggregation error:", error);
+    res.status(500).json({ error: "Internal Server Error", message: error.message });
+  }
+}
+
 module.exports = {
   loadLogin,
   loadDashboard,
@@ -357,6 +475,8 @@ module.exports = {
   adminLogout,
   salesReport,
   downloadSalesData,
-  downloadPDF
+  downloadPDF,
+  Chart
+  
   
 };

@@ -2,6 +2,12 @@
 <html>
 <head>
 
+
+
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+
+
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
 
@@ -148,32 +154,59 @@
                     </div>
                 </div>
 
-                <button type="submit" class="button">Add COUPON</button>
+                <button class="button" id="couponBtn">Add COUPON</button>
             </form>
         </div>
     </div>
 
 
-    <!-- <script>
-        document.getElementById('button').addEventListener('click',()=>{
-           const code = document.getElementById('code').value;
-           const offer = document.getElementById('offer').value;
-           const minPrice = document.getElementById('minPrice').value;
-           const maxPrice = document.getElementById('maxPrice').value;
-           const description = document.getElementById('description').value
-
-           if(code == ''|| offer == ''|| minPrice ==''||maxPrice==''||description==''){
-            swal.fir({
-                title:'Error',
-                text:'Please All Fields'
-            })
-           }
-         
+    <script>
+   document.getElementById('couponBtn').addEventListener('click',async (e)=>{
+    e.preventDefault();
+    const code = document.getElementById('code').value;
+    const offer = document.getElementById('offer').value;
+    const minPrice = document.getElementById('minPrice').value;
+    const maxPrice = document.getElementById('maxPrice').value;
+     const description = document.getElementById('description').value
+    try {
+        const response = await fetch('/admin/couponAdd',{
+            method: "POST",
+             headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+              code,
+              offerPrice:offer,
+              minPrice,
+              maxPrice,
+              description
+         })
         })
-    
+        const data = await response.json();
 
-      
+        console.log('response data is',data);
+        if(data.success){
+          swal.fire({
+            title:'success',
+            text:data.message,
+            icon:'success'
+          })
+          window.location.href = data.redirectUrl
+        }else{
+            swal.fire({
+                title:'warning',
+                text:data.message,
+                icon:'error'
+            })
+        }
+    } catch (error) {
+        swal.fire({
+            title:'error',
+            text:'Coupon adding error',
+            icon:'error'
+        })
+    }
 
-    </script> -->
+   })
+
+    </script>
 </body>
 </html>

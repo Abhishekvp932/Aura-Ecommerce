@@ -47,6 +47,8 @@ router.get('/orderDetails/:id',adminCheck,orderController.loadOrderDetails);
 router.get('/cancelOrder/:id',adminCheck,orderController.cancelOrder);
 router.post('/updateStatus/:id',adminCheck,orderController.updateStatus);
 router.get('/returnSuccess',adminCheck,orderController.returnSuccess)
+router.get('/returnReject',adminCheck,orderController.rejectReturn);
+
 
 router.get('/coupons',adminCheck,couponController.loadCoupons);
 router.get('/addCoupons',adminCheck,couponController.couponAdd);
@@ -58,4 +60,9 @@ router.get('/salesReport',adminController.salesReport);
 router.post('/download-sales-data',adminController.downloadSalesData)
 router.post('/download-pdf',adminController.downloadPDF)
 router.post('/saveOffer',adminCheck,productsController.saveOffer)
+router.get('/sales-data',adminController.Chart)
+
+router.get('/approve',orderController.returnApprov)
+router.get('/reject',orderController.returnReject);
+
 module.exports = router

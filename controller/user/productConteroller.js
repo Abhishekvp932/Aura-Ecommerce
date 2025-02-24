@@ -16,7 +16,6 @@ const shoppingPage = async (req, res) => {
   try {
     const { priceFrom, priceTo } = req.query;
 
-    console.log('Price Range:', priceFrom, priceTo);
 
     const sort = req.query.sort || ''; 
     let sortCriteria = {};
@@ -50,12 +49,12 @@ const shoppingPage = async (req, res) => {
       _id: category._id,
       name: category.name,
     }));
-
-    let offer = null;
-    if (products.length > 0) {
-      offer = await offers.findOne({ category: products[0].category._id });
-    }
-
+    const idd = categories.map(category=> category._id)
+    // let offer = null;
+    // if (products.length > 0) {
+    //   offer = await offers.findOne({ category: products[0].category._id });
+    // }
+    const offer = await offers.find({ category: { $in: idd },isActive:true});
     return res.render('shopping', {
       userLoged,
       product: products,
@@ -79,22 +78,18 @@ const shoppingPage = async (req, res) => {
 
 const loadProductDetails = async(req,res)=>{
     try {
-      console.log('asdasdasd');
       
         const productId = req.params.id;
         const userLoged = req.session.userLoged;
-       console.log(productId)
          const product = await Products.findById(productId).populate('reviews.userId')
-         console.log('reviews data',product.reviews)
-         console.log('single product',product)
          const category = await Category.findById(product.category);
         const offer = await offers.findOne({isActive:true}) 
         const allProduct = await Products.find({category: category._id})
-        console.log(allProduct);
-          console.log('asdad');
+       
+        
           
         const userIds = product.reviews.map((review) => review.userId);
-        console.log('review user id is',userIds);
+      
         
     if (!product) {
       req.flash('error', 'Product not found');
@@ -144,7 +139,7 @@ const eachCategory = async (req, res) => {
     
     const offer = await offers.findOne({ category: id, isActive: true });
     const offerActive = await offers.find({ isActive: true });
-    const allCategory = await Category.find();
+    const allCategory = await Category.find({isListed:true});
 
     let query = { category: id };
     
@@ -199,6 +194,7 @@ const eachCategory = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
 const reviewAdding = async (req, res) => {
   try {
     const id = req.params.id;
@@ -272,7 +268,7 @@ const searchProducts = async (req, res) => {
     if (sortOption === 'priceDesc') sortCriteria.price = -1;
 
     const searchProduct = await Products.find(filters).sort(sortCriteria);
-
+const offer = await offers.find({isActive:true})
     const categoryList = await Category.find();
 
     res.render('shopping', { 
@@ -282,7 +278,10 @@ const searchProducts = async (req, res) => {
       currentPage: 1,
       sortOption,
       userLoged,
-      offer: null 
+       offer,
+       priceFrom:null,
+       priceTo:null
+
     });
   } catch (error) {
     console.log('Advanced search error:', error);

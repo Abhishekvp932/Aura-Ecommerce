@@ -279,7 +279,7 @@
         <!-- Tracking Header -->
         <div class="tracking-header">
           <h1>Order Tracking</h1>
-          <p>Track the progress of your order with ID: <strong><%= orders.orderId%></strong></p>
+          <p>Track the progress of your order with ID:<strong><%= orders.orderId%></strong></p>
         </div>
   
         <!-- Tracking Progress -->
@@ -322,17 +322,22 @@
         <div class="order-details">
           <h2>Order Details</h2>
           <div class="order-info">
-            <p><span >Order ID:</span><%= orders.orderId%></p>
-            <p><span>Order Date:</span><%= new Date(orders.createdOn).toLocaleDateString('en-US', { 
+            <p><span >Order ID:</span> <span> <%= orders.orderId%> </span></p>
+            <p><span >payment Method:</span> <span> <%= orders.paymentMethod%> </span></p>
+            <% if(orders.status === 'Pending Payment') {%>
+            <p><span >Payment Status:</span> <span class="text text-danger" style="color: white;"><%= orders.status%></span></p>
+              <button class="btn btn-info" id="retryPayment" onclick="retryPayment('<%= orders._id %>')">Retry Payment</button>
+              <% } %>
+            <p><span>Order Date:</span> <span> <%= new Date(orders.createdOn).toLocaleDateString('en-US', { 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
-            }) %> </p>
+            }) %> </span></p>
             <% if(address) {%>
             <p><span style="color: black;" >Delivery Address </span> <br> <span><%= address.phone %> <br> </span><span><%= address.name %> <br> </span><span><%= address.landMark %></span><br><span><%= address.city %></span><br> <span> <%= address.state %></span><br> <span><%= address.pincode %></span></p>
             <% } %>
           </div>
-  
+          <button class="btn btn-warning" onclick="invoiceDownload('<%= orders._id %>')">Get Invoice</button>
           <h3>Products</h3>
           <div class="product-list">
             <% for(let i=0;i<orders.orderedItems.length;i++) { %>
@@ -348,14 +353,14 @@
                 <span>Product <%= i+1 %></span>
                <span>Product Name:<%= orders.orderedItems[i].product.productName %></span>
                <span>Quantity:<%= orders.orderedItems[i].quantity %></span>
-               <span>Discount:₹<%= orders.discount %></span>
+             
               <span> Product Price:₹<%= orders.orderedItems[i].price%></span>
-              <% if(orders.status === 'Delivered' && orders.orderedItems[i].status !== 'Return Request' && orders.orderedItems[i].status !== 'Cancelled' &&  orders.orderedItems[i].status !== 'Returned'){ %>
+              <% if(orders.status === 'Delivered' && orders.orderedItems[i].status !== 'Return Request' && orders.orderedItems[i].status !== 'Cancelled' &&  orders.orderedItems[i].status !== 'Returned' && orders.status !== 'Pending Payment'){ %>
                 <button  class="btn btn-primary" style="background-color: #007bff;" id="return" onclick="returnReson('<%= orders.orderedItems[i]._id %>')" >Return</button> 
                 <% }else if(orders.orderedItems[i].status === 'Return Request' || orders.orderedItems[i].status === 'Returned'){ %>
                   <span class="text-danger">Return request Addedd</span>  
                   
-                  <% }else if(orders.orderedItems[i].status !== 'Cancelled' && orders.status !== 'Cancelled'  &&  orders.orderedItems[i].status !== 'Returned'){ %>
+                  <% }else if(orders.orderedItems[i].status !== 'Cancelled' && orders.status !== 'Cancelled'  &&  orders.orderedItems[i].status !== 'Returned' && orders.status !== 'Pending Payment'){ %>
                     <span style="margin-left: 0px;">
                       <a href="/cancel/<%= orders._id %>/product/<%= orders.orderedItems[i]._id %>" 
                         class="btn btn-danger" 
@@ -364,12 +369,17 @@
                        Cancel
                      </a>                                      
                     </span>
-                    <% }else{ %>
+                    <% }else if(orders.status === 'Pending Payment' && orders.orderedItems[i].status !== 'Return Request' && orders.orderedItems[i].status !== 'Cancelled' &&  orders.orderedItems[i].status !== 'Returned') {%>
+                      <span class="text-danger">Payment Pending</span>
+                      <% }else{ %>
                       <span class="text-danger">Cancelled</span>
                       <% } %>
               </div>
             </div>
             <% } %>
+          </div>
+          <div>
+            <span  style="color: black; font-size: 20px;">Discount:₹<%= orders.couponDiscount %></span>
           </div>
           <span style="color: black; font-size: 20px;">Total Price:<%= orders.finalAmount %></span>     
         </div>
@@ -440,6 +450,7 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
     <script src="/js/google-map.js"></script>
     <script src="/js/main.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <script>
        function confirmBlock(event) {
@@ -513,9 +524,92 @@ console.log('return product id is',productId)
 
 }
 
+const retryPayment = async (orderId) => {
+  try {
+    const response = await fetch('/retry-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId }),
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      const razorPayOptions = {
+        key: data.key,
+        amount: data.amount,
+        currency: "INR",
+        order_id: data.razorpay_order_id,
+        orderId:data.orderId,
+        handler: async function (response) {
+          console.log("Payment Success Response:", response);
+
+          const verifyResponse = await fetch('/verifyPayment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              amount: data.amount,
+              order_id: data.razorpay_order_id,
+              payment_id: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+              orderId,
+            }),
+          });
+
+          const redata = await verifyResponse.json();
+          console.log('Payment Verification Response:', redata);
+          if(redata.success){
+            swal.fire({
+              title:'success',
+              text:redata.message,
+              icon:'success'
+            })
+          }else{
+            swal.fire({
+              title:'success',
+              text:'Payment verification error',
+              icon:'error'
+            })
+          }
+        },
+      };
+
+      const rzp = new Razorpay(razorPayOptions);
+      rzp.open();
+    } else {
+      alert('Unable to open Razorpay');
+    }
+  } catch (error) {
+    console.error('Error during retry payment:', error);
+    swa.fire({
+      title:'error',
+      text:"paymment error occurred"
+    })
+  }
+};
 
 
- 
+const invoiceDownload = async (orderId)=>{
+ console.log('order id is',orderId);
+
+ try {
+  const response = await fetch (`/downloadInvoice?orderId=${orderId}`)
+  console.log('response is',response);
+  const blob = await response.blob();
+
+        // Create a URL for the file and trigger the download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `invoice-${orderId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        
+ } catch (error) {
+  
+ }
+}
+
     </script>
   </body>
 </html>

@@ -7,6 +7,9 @@ const cartSchema = new Schema ({
         ref:'User',
         
     },
+    totalCartPrice:{
+  type:Number,
+    },
     products:[{
         productId:{
             type:Schema.Types.ObjectId,

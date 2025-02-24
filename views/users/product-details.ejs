@@ -232,7 +232,7 @@ input[type="radio"]:checked ~ .star-label {
                   <p class="price">
                     <span><del>Price: <%= product.regularPrice %></del></span>
                     <span style="color: red;">
-                      Offer: <%= product.regularPrice - ((product.regularPrice * offer.offer) / 100) %>
+                      Offer: <%= product.regularPrice - ((product.regularPrice * offer.offer) / 100)-product.productOffer %>
                     </span>
                   </p>
                 <% } else { %>
@@ -492,7 +492,7 @@ input[type="radio"]:checked ~ .star-label {
                             </span>
                         </p>
                         <% }else{ %>
-                          <p class="price"><span>Price: <%= product.regularPrice %></span></p>
+                          <p class="price"><span>Price: <%= allProduct[i].regularPrice %></span></p>
                           <% } %>
                         </div>
                         <p class="bottom-area d-flex px-3">

@@ -6,7 +6,7 @@ const Category = require("../../models/categorySchema");
 const offers = require("../../models/offerSchema");
 const Address = require("../../models/addressSchema");
 const Cart = require("../../models/cartSchema");
-
+const mongoose = require('mongoose')
 const Wishlist = require('../../models/wishlistSchema')
 
 
@@ -58,22 +58,21 @@ const loadWishlist = async(req,res)=>{
 
 const addToWishlist = async(req,res)=>{
     try {
-        const {productId} = req.body
-        console.log('product id is nnn',productId)
+       let {productId} = req.body
+        productId = productId.trim();
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
+            return res.status(400).json({ error: "Invalid Product ID" });
+          }
         const email = req.session.userEmail;
        const user = await User.findOne({email:email})
-        console.log('user is ',user) 
-
 
        if(!user){
         req.flash('err','user not found')
         return res.redirect('/login')
        }
-       console.log('1');
        
 
        let wishlist = await Wishlist.findOne({userId:user._id})
-       console.log('2');
        if(!wishlist){
         wishlist = new Wishlist({userId:user._id,products:[]})
        }
@@ -86,11 +85,10 @@ const addToWishlist = async(req,res)=>{
       }
 
        wishlist.products.push({
-        productId:productId,
+        productId: new mongoose.Types.ObjectId(productId)
         
        })
         await wishlist.save()
-       console.log('3')
        return res.json({
         success:true,
         message:'Product addedd To Wishlist',
@@ -109,7 +107,6 @@ const addToWishlist = async(req,res)=>{
 const addToCart = async(req,res)=>{
     try {
         const {productId} = req.body
-        console.log('product id is',productId)
         const email = req.session.userEmail
         const user = await User.findOne({email:email})
         if(!user){
@@ -118,7 +115,6 @@ const addToCart = async(req,res)=>{
         }
         const product = await Products.findById(productId)
     
-        console.log('product data is ',product)
    const availableSize = Object.keys(product.size).filter((size)=>  product.size[size]>0);
 
    if(availableSize.length ===0){
@@ -139,21 +135,41 @@ const addToCart = async(req,res)=>{
             (item) => item.productId.toString() === productId && item.size === randomSize
         );
 
+        let categoryOffer = 0;  
+        const offersList = await offers.find({ category: product.category });
+        
+        
+        if (offersList.length > 0) { 
+          for (const offer of offersList) {  
+            if (
+              product.regularPrice > offer.minPrice &&
+              product.regularPrice < offer.maxPrice &&
+              offer.isActive 
+            ) {
+              categoryOffer = product.regularPrice - ((product.regularPrice * offer.offer) / 100)-product.productOffer
+              break; 
+            }
+          }
+        }
+    
+
         if (existingProduct) {
             return res.json({
                 success: false,
                 message: "Product is already in the cart!",
             });
         }
-
-           cart.products.push({
+        cart.products.push({
             productId:productId,
             name:product.productName,
             quantity:1,
-            price:product.regularPrice-product.productOffer,
-            size:randomSize
-            
+            price:categoryOffer || product.regularPrice - product.productOffer,
+            totalPrice:categoryOffer || product.regularPrice - product.productOffer,
+            size:randomSize,
+            productDiscount:product.productOffer,            
            })
+           
+           cart.totalCartPrice = cart.products.reduce((sum, item) => sum + item.totalPrice, 0);
            await cart.save()
 
            return res.json({
@@ -174,7 +190,6 @@ const addToCart = async(req,res)=>{
 const removeWishlist = async(req,res)=>{
     try {
        const {id,productId} = req.params
-       console.log(req.params)
 
        const updatedData = await Wishlist.updateOne(
         {_id:id},

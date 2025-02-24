@@ -9,9 +9,10 @@ const Address = require("../../models/addressSchema");
 const Cart = require("../../models/cartSchema");
 const Order = require('../../models/orderSchema');
 const Coupon = require('../../models/couponSchema')
-
+const Wallet = require('../../models/walletSchema')
 const Razorpay = require('razorpay');
-const { v4: uuidv4 } = require("uuid")
+const { v4: uuidv4 } = require("uuid");
+const { json } = require("express");
 
 
 
@@ -27,7 +28,6 @@ const loadCheckout = async(req,res)=>{
         }
         const cart = await Cart.findOne({ userId: user._id }).populate('products.productId');
         const address = await Address.findOne({ userId: user._id })
-        console.log('wich address',address);
         
         return res.render('checkout', {
           userLoged,
@@ -63,7 +63,6 @@ const razorpay = new Razorpay({
 
 const createRazoPayOrder = async (amount, receipt) => {
   try {
-    console.log('a', amount, 'b', receipt);
     
     return razorpay.orders.create({
       amount: amount * 100, 
@@ -79,27 +78,24 @@ const createRazoPayOrder = async (amount, receipt) => {
 
 const placeOrder = async (req, res) => {
   try {
-    // const { address, paymentMethod, discount: rawDiscount, couponCode } = req.body;
-    // console.log("Payment Method:", paymentMethod);
-    // console.log("Coupon Code:", couponCode);
-    // console.log("Checkout Address:", address);
-
-
-const {paymentMethod,address,couponCode} =req.body
-console.log('address reazo id is',address)
-console.log('product order data razoa',req.body)
-
-
-    if (!paymentMethod) {
-      return res.json({ success: false, message: "Please select a payment method" });
-    }
+    const { paymentMethod, address, couponCode } = req.body;
+    
+    
 
     const email = req.session.userEmail;
     const user = await User.findOne({ email });
-
+     
     if (!user) {
       return res.json({ success: false, message: "User not found" });
     }
+
+
+  if(!paymentMethod){
+    return res.json({success:false,message:'Please select a payment method'})
+  }
+  if(!address){
+    return res.json({success:false,message:'please select a Address'})
+  }
 
     const cart = await Cart.findOne({ userId: user._id }).populate("products.productId");
 
@@ -107,27 +103,60 @@ console.log('product order data razoa',req.body)
       return res.json({ success: false, message: "Your cart is empty" });
     }
 
+    let totalProducts = cart.products.length || 1;
+    let discountAmount = req.session.discount || 0;
+    let perProductDiscount = !isNaN(discountAmount / totalProducts)
+      ? parseFloat((discountAmount / totalProducts).toFixed(2))
+      : 0;
+
     const orderedItems = cart.products.map((product) => ({
       product: product.productId._id,
       quantity: product.quantity,
       size: product.size,
       price: product.price,
-      productDiscount:product.productDiscount
+      totalPrice: parseFloat(((product.price - perProductDiscount ) * product.quantity).toFixed(2)),
+      productDiscount: parseFloat((product.productDiscount + perProductDiscount).toFixed(2)),
     }));
 
-    const totalPrice = orderedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const couponDiscount =  req.session.discount || 0;
-    const finalAmount = Math.max(totalPrice - couponDiscount, 0);
+    const totalPrice = orderedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+    const couponDiscount = req.session.discount || 0;
+    const finalAmount = Math.max(totalPrice, 0);
     const orderId = uuidv4();
 
     let razorpayOrder = null;
 
     if (paymentMethod === "onlinePayment") {
-      console.log("Creating Razorpay Order:", { finalAmount, orderId });
+      
       razorpayOrder = await createRazoPayOrder(finalAmount, orderId);
-      console.log('findal amount and order id',finalAmount,orderId)
-      console.log("Razorpay Order Created:", razorpayOrder);
+      
 
+      return res.json({
+        success: true,
+        orderId,
+        razorpayOrderId: razorpayOrder.id,
+        amount: razorpayOrder.amount,
+        key: process.env.RAZORPAY_KEY_ID,
+        orderedItems,
+        paymentMethod,
+        totalPrice,
+        couponDiscount,
+         finalAmount,
+         address,
+         userId:user._id,
+        
+      });
+    }
+    if (paymentMethod === "walletPayment") {
+      const wallet = await Wallet.findOne({ userId: user._id });
+
+      if (!wallet || wallet.balance < finalAmount) {
+        return res.json({
+          success: false,
+          message: "Insufficient wallet balance"
+        });
+      }
+      wallet.balance -= finalAmount;
+      await wallet.save();
       const newOrder = await Order.create({
         userId: user._id,
         orderedItems,
@@ -138,22 +167,26 @@ console.log('product order data razoa',req.body)
         address,
         invoiceDate: new Date(),
         status: "Pending",
-        couponApplied: couponDiscount > 0,
-        razorpayOrderId: razorpayOrder.id
+        couponApplied: couponDiscount > 0
       });
-  
-      return res.json({
-        success: true,
-        orderId:newOrder._id,
-        razopayOrderId: razorpayOrder.id,
-        amount: razorpayOrder.amount,
-        key: process.env.RAZORPAY_KEY_ID
-      });
+
+      await Wallet.updateOne(
+        { userId: user._id },
+        { 
+          $push: { 
+            walletData: { 
+              status: "Debit",
+              price: finalAmount,
+              date: new Date(),
+              orderId: newOrder._id
+            } 
+          } 
+        }
+      );
     }
 
-    
-
-    const newOrder = await Order.create({
+     if(paymentMethod === 'Cash on delivery'){
+     const newOrder = await Order.create({
       userId: user._id,
       orderedItems,
       paymentMethod,
@@ -163,23 +196,21 @@ console.log('product order data razoa',req.body)
       address,
       invoiceDate: new Date(),
       status: "Pending",
-      couponApplied: couponDiscount > 0,
+      couponApplied: couponDiscount > 0
     });
-
-    console.log("New Order:", newOrder);
-
+    
+  }
+   
     if (couponCode && couponDiscount > 0) {
       const coupon = await Coupon.findOne({ code: couponCode });
-      console.log("Coupon Data:", coupon);
+
       if (coupon) {
-        coupon.couponUsers.push(user._id);
-        await coupon.save();
-      } else {
-        console.log("Coupon not found");
+        await Coupon.updateOne(
+          { _id: coupon._id },
+          { $push: { couponUsers: user._id } }
+        );
       }
     }
-
-    
     for (const item of orderedItems) {
       const product = await Products.findById(item.product);
       if (!product) {
@@ -202,11 +233,10 @@ console.log('product order data razoa',req.body)
 
     req.session.discount = null;
 
-     res.json({
+    res.json({
       success: true,
       message: "Order placed successfully",
-      orderId: newOrder._id,
-       redirectUrl: "/userOrders"
+      redirectUrl: "/userOrders"
     });
 
   } catch (error) {
@@ -216,11 +246,11 @@ console.log('product order data razoa',req.body)
 };
 
 
+
 const getAddrss = async (req,res)=>{
   try {
   const addressId = req.params.id
   const addressData = await Address.findOne({'addresses._id':addressId})
-  console.log('address data',addressData)
 
   const address = addressData.addresses.find(addr => addr._id.toString() === addressId);
 
@@ -240,13 +270,10 @@ const updateAddress = async (req,res)=>{
   try {
 
     const addressId = req.params.id
-    console.log('address id is',addressId)
   const  { name, addressType, city, landMark, state, pincode, phone, altPhone } = req.body;
 const email = req.session.userEmail
-console.log('req.body',req.body)
 
 const user = await User.findOne({email:email})
-console.log('update user id',user)
     
   const updateAddress = await Address.updateOne({userId:user._id,'addresses._id':addressId},
     {$set:{
@@ -260,7 +287,6 @@ console.log('update user id',user)
     'addresses.$.altPhone':altPhone
   }},{new:true})
 
-  console.log('udateed address id',updateAddress);
   return res.json({
     success:true,
     message:'Address updated successfuly'

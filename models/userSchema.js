@@ -32,15 +32,7 @@
             type:Boolean,
             default:false
         },
-        cart:[{
-            type:Schema.Types.ObjectId,
-            ref:"Cart",
-        }],
-        wishlistt:[{
-            type:Schema.Types.ObjectId,
-            ref:"Wishlist",
-        }],
-        orderHistory:[{
+       orderHistory:[{
             type:Schema.Types.ObjectId,
             ref:"Order",
         }],
@@ -53,14 +45,14 @@
             //  required:true,
 
         },
-        redeemed:{
-            type:Boolean,
-            //  default:false
+        referredBy: { 
+            type: String, 
+            default: null 
         },
         redeemedUser:[{
             type:Schema.Types.ObjectId,
             ref:"User",
-            // required:true,
+          
         }],
 
         searchHistory:[{

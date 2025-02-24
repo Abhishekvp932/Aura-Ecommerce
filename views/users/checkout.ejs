@@ -422,7 +422,7 @@
       </div>
     </div>
 
-    <!-- Main Checkout Section -->
+    
     <section class="ftco-section">
       <div class="checkout-container">
         <form action="/placeOrder" method="post" class="billing-form">
@@ -484,6 +484,7 @@
               <div class="checkout-card">
                 <h3 class="section-title">Payment Method</h3>
                 <div class="payment-methods">
+                  <% if(cart.totalCartPrice < 1000) {%>
                   <div class="payment-method">
                     <input 
                       type="radio" 
@@ -491,8 +492,23 @@
                       value="Cash on delivery" 
                       required
                     />
-                    <label>Cash on Delivery</label>
+                    <label>CASH ON DELIVERY</label>
                   </div>
+                  <% }else{ %>
+                    <div class="payment-method">
+                      <input 
+                        type="radio" 
+                        name="paymentMethod" 
+                        value="Cash on delivery" 
+                        required
+                        disabled
+                      />
+                      <label>CASH ON DELIVERY</label>
+                      <br>
+                     
+                    </div>
+                    <p style="color: red;">COD is only available for orders below ₹1000</p>
+                    <% } %>
                   <div class="payment-method">
                     <input 
                       type="radio" 
@@ -500,7 +516,17 @@
                       value="onlinePayment" 
                       required
                     />
-                    <label>Razorpay</label>
+                    <label>RAZORPAY</label>
+                  </div>
+                  <div class="payment-method">
+                    <input 
+                      type="radio" 
+                      name="paymentMethod" 
+                      value="walletPayment" 
+                      required
+                      
+                    />
+                    <label>WALLET</label>
                   </div>
                 </div>
               </div>
@@ -515,6 +541,10 @@
                   <span>₹ <%= product.price * product.quantity %></span>
                 </div>
               <% }) %>
+              <div class="summary-item">
+                <span>Coupon discount</span>
+                <span id="couponDiscount">0</span>
+              </div>
               <div class="summary-item summary-total">
                 <span>Total Amount</span>
                 <span id="totalAmount">₹ <%= cart.products.reduce((sum, product) => sum + (product.price * product.quantity), 0) %></span>
@@ -628,6 +658,9 @@
 
     <!-- Form submission and coupon handling -->
     <script>
+
+      document.getElementById('addressModal').style.display = 'none'
+
       document.querySelector('.billing-form').addEventListener('submit', async function(event) {
         event.preventDefault();
         
@@ -664,9 +697,13 @@
               icon: 'success',
               timer: 2000,
               showConfirmButton: true
-            });
+            })
+            .then(result=>{
+              if(result.isConfirmed){
+                window.location.href = data.redirectUrl;
+              }
+            })
 
-            window.location.href = data.redirectUrl;
           } else {
             Swal.fire({
               title: 'Error',
@@ -688,7 +725,7 @@
   }
 });
 
-document.getElementById('addressModal').style.display = 'none'
+
 document.getElementById('couponRemove').style.display = 'none'
 document.getElementById('couponBtn').addEventListener('click',async (event)=>{
   event.preventDefault();
@@ -727,6 +764,7 @@ const couponCode = document.querySelector('input[name="couponCode"]')
       document.getElementById('couponBtn').style.display='none'
       document.getElementById('couponRemove').style.display = 'inline'
       document.getElementById('totalAmount').innerHTML =`<strong>₹ ${result.newTotal}</strong>`
+      document.getElementById('couponDiscount').innerHTML = `<strong>₹${result.discount}</strong>`
     }else{
       swal.fire({
         title:'Error',
@@ -885,15 +923,7 @@ document.getElementById("pay-btn").addEventListener("click", async function (e) 
                 const couponCode = document.getElementById('coupon').value;
                     
                 console.log('address is',addressId)
-                if(!paymentMethod){
-                  swal.fire({
-                    title:'warning',
-                    text:"Please select a Payment method",
-                    icon:'warning'
-                  })
-                  return
-                }
-
+    
                 const cartId = "<%= cart._id %>"; 
                 console.log('cart id is',cartId)
                
@@ -923,19 +953,44 @@ document.getElementById("pay-btn").addEventListener("click", async function (e) 
                   title:'success',
                   text:order.message,
                   icon:'success'
-                 })
+                 }).then(result =>{
                   window.location.href = order.redirectUrl;
-                  return;
+                 })
+                
+
+                }else if(paymentMethod === 'walletPayment'){
+                  
+                swal.fire({
+                  title:'success',
+                  text:order.message,
+                  icon:'success'
+                }).then(result =>{
+                  window.location.href = order.redirectUrl
+                })
 
                 }else{
             console.log('1')
+           const {
+            orderId,
+          razorpayOrderId,
+           amount,
+          key,
+          orderedItems,
+          paymentMethod,
+         totalPrice,
+        couponDiscount,
+         finalAmount,
+         address,
+         userId,
+              } = order
+
                 const options = {                  
                     key:'rzp_test_UJHrF4ZCERjDBB',
                     amount:order.amount,
                     currency:"INR",
                     name:"Aura-Mens",
                     description:"Test Payment",
-                    order_id:order.razopayOrderId,
+                    order_id:order.razorpayOrderId,
                     handler:async function (response) {
 
                       console.log('2',response)
@@ -947,7 +1002,14 @@ document.getElementById("pay-btn").addEventListener("click", async function (e) 
                               payment_id:response.razorpay_payment_id,
                                 order_id:response.razorpay_order_id,
                                 signature:response.razorpay_signature,
-                                orderId:order.orderId
+                                orderId,
+                                orderedItems,
+                                paymentMethod,
+                                totalPrice,
+                                couponDiscount,
+                                finalAmount,
+                                address,
+                                userId
                             })
                         });
                         
@@ -959,7 +1021,7 @@ document.getElementById("pay-btn").addEventListener("click", async function (e) 
                             text:"Payment successfuly completed",
                             icon:'success'
                            })
-                            // window.location.href = verifyData.redirectUrl || "/userOrders";
+                            window.location.href = verifyData.redirectUrl || "/userOrders";
                         } else {
                             swal.fire({
                               title:"error",
@@ -973,13 +1035,63 @@ document.getElementById("pay-btn").addEventListener("click", async function (e) 
                         email: "aura-men@fashion.com",
                         contact: "9078563467"
                     },
-                    theme: { color: "#3399cc" }
+                    theme: { color: "#3399cc" },
+                    modal:{
+                      ondismiss:function(){
+                        Swal.fire({
+                        title: "Payment Failed",
+                        text: "Your payment was not completed. What would you like to do?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        showDenyButton: true,
+                        confirmButtonText: "Retry",
+                        denyButtonText: "Place Order",
+                        cancelButtonText: "Cancel",
+                    }).then(async(result)=>{
+                      if(result.isConfirmed){
+                        rzp.open()
+                      }else if(result.isDenied){
+                   const data = await fetch('/placeFieldOrders',{
+                      method:'POST', 
+                        headers: {
+                       "Content-Type": "application/json",
+                       },
+                      body: JSON.stringify({
+                        orderId,
+                        orderedItems,
+                         paymentMethod,
+                        totalPrice,
+                       couponDiscount,
+                        finalAmount,
+                        address,
+                        userId
+                    }) 
+                     })
+                     const result = await data.json()
+                     console.log('result is result',result);
+                     if(result.success){
+                      swal.fire({
+                        title:'Success',
+                        text:result.message,
+                        icon:'success'
+                      })
+                      window.location.href = result.redirectUrl
+                     }else{
+                      swal.fire({
+                        title:'error',
+                        text:'field order placing error',
+                        icon:'error'
+                      })
+                     }
+                      }
+                    })
+                      }
+                    }
                   }
-                  console.log('options is',options);
 
+                  console.log('options is',options);
                   const rzp = new Razorpay(options);
                   rzp.open();
-
                 }
 
                 } catch (error) {

@@ -409,10 +409,36 @@
                                       </div>
                                   <% } %>
                               </div>
-
+                              <nav aria-label="Transaction history navigation">
+                                <ul class="pagination inline-flex items-center">
+                                  <% if (totalPage > 1) { %>
+                                    <ul class="pagination">
+                                      
+                                      <!-- Previous Button -->
+                                      <li class="page-item <%= (currentPage === 1) ? 'disabled' : '' %>">
+                                        <a class="page-link" href="?page=<%= currentPage - 1 %>">Previous</a>
+                                      </li>
+                                  
+                                      <!-- Page Numbers -->
+                                      <% for (let i = 1; i <= totalPage; i++) { %>
+                                        <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
+                                          <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                                        </li>
+                                      <% } %>  
+                                  
+                                   
+                                      <li class="page-item <%= (currentPage === totalPage) ? 'disabled' : '' %>">
+                                        <a class="page-link" href="?page=<%= currentPage + 1 %>">Next</a>
+                                      </li>
+                                      
+                                    </ul>
+                                  <% } %>
+                                                       
+                                </ul>
                             </div>
+                            
                         </div>
-
+                       
 
                     </div>
                 </div>

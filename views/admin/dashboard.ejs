@@ -616,6 +616,66 @@
               </div>
             </div>
 
+            <h2 class="bg-gray-200  px-4 py-3" style="font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">TOP 10 ORDERD PRODUCTS AND CATEGORIES</h2>
+            <div class="grid gap-6 mb-8 md:grid-cols-2">
+              <!-- Products Table -->
+              <div class="w-full overflow-x-auto">
+                  <table class="w-full border border-gray-300">
+                      <thead>
+                          <tr class="bg-gray-200">
+                              <th class="px-4 py-3">No</th>
+                              <th class="px-3 py-3">Name</th>
+                              <th class="px-4 py-3">Sales Count</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <% if (products && products.length > 0) { %>
+                              <% products.forEach((item, index) => { %>
+                                  <tr class="border-b">
+                                      <td class="px-4 py-3 text-sm"><%= index + 1 %></td>
+                                      <td class="px-4 py-3 text-sm"><%= item.name %></td>
+                                      <td class="px-4 py-3 text-sm"><%= item.orderCount %></td>
+                                  </tr>
+                              <% }) %>
+                          <% } else { %>
+                              <tr>
+                                  <td colspan="3" class="text-center py-3 text-gray-500">No products found</td>
+                              </tr>
+                          <% } %>
+                      </tbody>
+                  </table>
+              </div>
+          
+              <!-- Categories Table -->
+              <div class="w-full overflow-x-auto">
+                  <table class="w-full border border-gray-300">
+                      <thead>
+                          <tr class="bg-gray-200">
+                              <th class="px-4 py-3">No</th>
+                              <th class="px-3 py-3">Name</th>
+                              <th class="px-4 py-3">Sales Count</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <% if (category && category.length > 0) { %>
+                              <% category.forEach((item, index) => { %>
+                                  <tr class="border-b">
+                                      <td class="px-4 py-3 text-sm"><%= index + 1 %></td>
+                                      <td class="px-4 py-3 text-sm"><%= item.name %></td>
+                                      <td class="px-4 py-3 text-sm"><%= item.categoryCount %></td>
+                                  </tr>
+                              <% }) %>
+                          <% } else { %>
+                              <tr>
+                                  <td colspan="3" class="text-center py-3 text-gray-500">No categories found</td>
+                              </tr>
+                          <% } %>
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+          
+
             <!-- Charts -->
             <h2
               class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200"
@@ -623,37 +683,13 @@
               Charts
             </h2>
             <div class="grid gap-6 mb-8 md:grid-cols-2">
-              <div
-                class="min-w-0 p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800"
-              >
-                <h4 class="mb-4 font-semibold text-gray-800 dark:text-gray-300">
-                  Revenue
-                </h4>
-                <canvas id="pie"></canvas>
-                <div
-                  class="flex justify-center mt-4 space-x-3 text-sm text-gray-600 dark:text-gray-400"
-                >
-                  <!-- Chart legend -->
-                  <div class="flex items-center">
-                    <span
-                      class="inline-block w-3 h-3 mr-1 bg-blue-500 rounded-full"
-                    ></span>
-                    <span>Shirts</span>
-                  </div>
-                  <div class="flex items-center">
-                    <span
-                      class="inline-block w-3 h-3 mr-1 bg-teal-600 rounded-full"
-                    ></span>
-                    <span>Shoes</span>
-                  </div>
-                  <div class="flex items-center">
-                    <span
-                      class="inline-block w-3 h-3 mr-1 bg-purple-600 rounded-full"
-                    ></span>
-                    <span>Bags</span>
-                  </div>
-                </div>
-              </div>
+            <select id="filter" onchange="updateChart()">
+              <option value="yearly">Yearly</option>
+              <option value="monthly">Monthly</option>
+              <option value="weekly">Weekly</option>
+          </select>
+          </div>
+            <div class="grid gap-6 mb-8 md:grid-cols-2">
               <div
                 class="min-w-0 p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800"
               >
@@ -665,28 +701,17 @@
                   class="flex justify-center mt-4 space-x-3 text-sm text-gray-600 dark:text-gray-400"
                 >
                   <!-- Chart legend -->
-                  <div class="flex items-center">
-                    <span
-                      class="inline-block w-3 h-3 mr-1 bg-teal-600 rounded-full"
-                    ></span>
-                    <span>Organic</span>
-                  </div>
-                  <div class="flex items-center">
-                    <span
-                      class="inline-block w-3 h-3 mr-1 bg-purple-600 rounded-full"
-                    ></span>
-                    <span>Paid</span>
-                  </div>
                 </div>
               </div>
             </div>
+            
           </div>
         </main>
       </div>
             <!-- CTA -->
 
 
-
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             <script>
               
 let result = null
@@ -837,6 +862,45 @@ const downloadPDF = async (result)=>{
 
 
 
-            </script>
+async function updateChart() {
+  var ctx = document.getElementById('line').getContext('2d');
+  const filter = document.getElementById('filter').value;
+  
+  try {
+  
+    const response = await fetch(`/admin/sales-data?filter=${filter}`);
+    
+    
+    const data = await response.json();
+    console.log("Received data:", data); 
+    
+  
+    var myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.labels,
+        datasets: [{
+          label: 'Sales Data',
+          data: data.values,
+          fill: false,
+          borderColor: 'rgba(75, 192, 192, 1)',
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error loading chart data:", error);
+  }
+}
+     </script>
   </body>
 </html>

@@ -206,7 +206,6 @@ const productEdite = async (req, res) => {
   const productBlock = async (req,res)=>{
     try {
       const id = req.params.id
-      console.log(id);
       
   
       await Product.findByIdAndUpdate(id,{$set:{isBlocked:true}})
@@ -233,9 +232,6 @@ const productEdite = async (req, res) => {
     try {      
       const {offer} = req.body
       const {productId} = req.query
-      console.log('offer amount',offer)
-      console.log('offer product id',productId)
-   
 
       if(!offer){
         return res.json({
@@ -244,7 +240,7 @@ const productEdite = async (req, res) => {
         })
       }
       const product = await Product.findById(productId)
-      console.log('2');
+     
       
       if(!product){
         return res.json({
@@ -253,7 +249,6 @@ const productEdite = async (req, res) => {
         })
       }
        
-console.log('1');
 
         await Product.updateOne({_id:productId},{productOffer:offer})
         res.json({

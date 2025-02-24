@@ -55,7 +55,6 @@ const loadCategory = async (req, res) => {
   const CategoryAdding = async (req, res) => {
     try {
       const { name, description } = req.body;
-      console.log(req.body);
   
       if (name == "" || description == "") {
         req.flash("errMsg", "All Field Required");
