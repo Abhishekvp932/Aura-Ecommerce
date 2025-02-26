@@ -39,8 +39,8 @@ const couponAdd = async(req,res)=>{
 
 const addCoupons = async(req,res)=>{
     try {
-        const {code,offerPrice,minPrice,maxPrice,description} = req.body
-        if(!code||!offerPrice||!minPrice||!maxPrice||!description){
+        const {code,offerPrice,minPrice,description} = req.body
+        if(!code||!offerPrice||!minPrice ||!description){
            
             return res.json({
                 success:false,
@@ -51,7 +51,6 @@ const addCoupons = async(req,res)=>{
             code:code,
             offerPrice:offerPrice,
             minPrice:minPrice,
-            maxPrice:maxPrice,
             description:description
         }
         const coupon = await Coupon.insertMany(newData)

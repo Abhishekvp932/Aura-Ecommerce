@@ -22,10 +22,6 @@ const couponSchema = new Schema({
     minPrice:{
         type:Number,
     },
-    maxPrice:{
-        type:Number,
-        
-    },
     isList:{
         type:Boolean,
         default:true,

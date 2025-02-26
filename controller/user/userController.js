@@ -63,6 +63,7 @@ const sendOTP = async (req,res)=>{
         req.session.userEmail=email
 
         const otp = generateOtp();
+        console.log('otp is',otp)
         const emailSend = await sendVerificationEmail(email,otp);
         if(!emailSend){
            res.redirect('/verifyEmail');
@@ -261,10 +262,17 @@ const pageNotFound = async(req,res)=>{
 const loadHome = async (req,res)=>{
     try {
       const userLoged = req.session.userLoged
-const product = await Product.find()
+const product = await Product.find().limit(8)
 
+const categories = await Category.find({ isListed: true });
+    const categoryWithIds = categories.map((category) => ({
+      _id: category._id,
+      name: category.name,
+    }));
+    const idd = categories.map(category=> category._id)
 
-      res.render('home',{ userLoged ,product});
+    const offer = await offers.find({ category: { $in: idd },isActive:true});
+      res.render('home',{ userLoged ,product,category:categoryWithIds,offer});
     } catch (error) {
         console.log("home page not found")
         res.status(500).send('server error')
@@ -592,7 +600,7 @@ const editeProfile = async(req,res)=>{
 
     } catch (error) {
         console.log('user profile editing error',error);
-        res.status(500).send('server error');
+        res.redirect('/page-404')
         
     }
 }
@@ -604,7 +612,7 @@ const updatePassword = async(req,res)=>{
         return res.render('updatePassword',{msg:req.flash('err')})
     } catch (error) {
        console.log('change password page not found ',error)
-       res.status(500).send('server error');
+       res.redirect('/page-404')
     }
 }
 const changePassword = async (req,res)=>{
@@ -630,7 +638,7 @@ const changePassword = async (req,res)=>{
 
     } catch (error) {
         console.log('password changing error',error);
-        res.status(500).send('server error');
+        res.redirect('/page-404')
     }
 }
 
@@ -681,9 +689,23 @@ const loadWallet = async (req, res) => {
         });
     } catch (error) {
         console.log('Wallet page not found', error);
-        res.status(500).send('Server error');
+        res.redirect('/page-404')
     }
 };
+
+
+
+const loadAbout = async (req,res)=>{
+    try {
+        const userLoged = req.session.userLoged
+        return res.render('about',{
+            userLoged
+        });
+    } catch (error) {
+        console.log('load about page error',error);
+        res.redirect('/page-404')
+    }
+}
 
 
 module.exports ={
@@ -719,5 +741,6 @@ module.exports ={
     updatePassword, // password updateing
     changePassword , // user password changing 
     loadWallet,
+    loadAbout
     
 }

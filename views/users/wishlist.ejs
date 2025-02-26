@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Minishop - Free Bootstrap 4 Template by Colorlib</title>
+    <title>Aura-Men</title>
 
     <link
       href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css"
@@ -79,7 +79,7 @@
 
     <div
       class="hero-wrap hero-bread"
-      style="background-image: url('images/bg_6.jpg')"
+      style="background-image: url('/images/wishlistBanner.webp')"
     >
       <div class="container">
         <div
@@ -87,10 +87,10 @@
         >
           <div class="col-md-9 ftco-animate text-center">
             <p class="breadcrumbs">
-              <span class="mr-2"><a href="index.html">Home</a></span>
-              <span>Cart</span>
+              <span class="mr-2"><a href="/"  style="color: white;">Home</a></span>
+              <span  style="color: white;">Cart</span>
             </p>
-            <h1 class="mb-0 bread">My Wishlist</h1>
+            <h1 class="mb-0 bread"  style="color: white;">My Wishlist</h1>
           </div>
         </div>
       </div>
@@ -113,6 +113,7 @@
                 </thead>
                 <tbody>
                  
+                  <% if(wishlist.length !==0){ %>
                   <% wishlist.forEach(wishlist=>{ %>
                   <tr class="text-center">
                     <td class="product-remove">
@@ -159,6 +160,13 @@
                     </td>
                   </tr>
                   <% }) %>
+                  <% }else{ %>
+                    <tr>
+                      <td colspan="7" class="text-center">
+                        <p>No wishlist items left</p>
+                      </td>
+                    </tr>
+                    <% } %>
                   <!-- END TR-->
                 </tbody>
               </table>

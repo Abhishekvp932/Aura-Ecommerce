@@ -264,7 +264,7 @@
         >
           <div class="col-md-9 ftco-animate text-center">
             <p class="breadcrumbs">
-              <span class="mr-2"><a href="index.html">Home</a></span>
+              <span class="mr-2"><a href="/">Home</a></span>
               <span>Checkout</span>
             </p>
             <h1 class="mb-0 bread">Tracking</h1>
@@ -344,9 +344,9 @@
             <div class="product-item">
              
               <div class="product-image">
-              <a href="/product-details/<%=orders.orderedItems[i].product._id %>">
+              <a href="/product-details/<%= orders.orderedItems[i].product._id %>">
 
-                <img src="/uploads/<%= orders.orderedItems[i].product.productImage[i]%>" alt="Product 1" />
+                <img src="/uploads/<%= orders.orderedItems[i].product.productImage[0]%>" alt="Product 1" />
               </a>
               </div>
               <div class="product-info">
@@ -526,6 +526,7 @@ console.log('return product id is',productId)
 
 const retryPayment = async (orderId) => {
   try {
+    console.log(orderId)
     const response = await fetch('/retry-payment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -533,13 +534,14 @@ const retryPayment = async (orderId) => {
     });
 
     const data = await response.json();
+    console.log(data)
     if (data.success) {
       const razorPayOptions = {
         key: data.key,
         amount: data.amount,
         currency: "INR",
         order_id: data.razorpay_order_id,
-        orderId:data.orderId,
+        orderId:data.id,
         handler: async function (response) {
           console.log("Payment Success Response:", response);
 
@@ -551,7 +553,7 @@ const retryPayment = async (orderId) => {
               order_id: data.razorpay_order_id,
               payment_id: response.razorpay_payment_id,
               signature: response.razorpay_signature,
-              orderId,
+              orderId:data.id,
             }),
           });
 

@@ -16,6 +16,19 @@ const XLSX = require("xlsx");
 
 const loadDashboard = async (req, res) => {
   try {
+
+    let page = 1;
+    if (req.query.page) {
+      page = parseInt(req.query.page, 10);
+    }
+    let limit = 10;
+
+    let skip = (page - 1) * limit;
+
+    
+
+
+
     const userCount = await User.countDocuments(); 
      
     const totalSales = await Order.aggregate([
@@ -40,7 +53,12 @@ const loadDashboard = async (req, res) => {
       itemSold :0,
     };
     const pendingOrders = await Order.countDocuments({ status: 'Pending' });
-    const order = await Order.find().sort({finalAmount:-1}).limit(10)
+    const order = await Order.find().sort({createdOn:-1}).limit(limit).skip((page-1)*limit);
+
+    const count = await Order.countDocuments();
+    const totalPage = Math.ceil(count / limit);
+
+
    const topOrders = await Order.aggregate(
     [
       {$unwind:"$orderedItems"},
@@ -109,6 +127,8 @@ const loadDashboard = async (req, res) => {
       pendingOrders,
       products:topOrders,
       category:topCategories,
+      totalPage,
+      currentPage: page,
       
     });
   } catch (error) {

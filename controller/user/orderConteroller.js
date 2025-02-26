@@ -42,8 +42,7 @@ const loadOrdersPage = async (req, res) => {
         }
        
         const order = await Order.find({userId:user._id}).sort({createdOn:-1}).skip((page - 1) * limit).limit(limit).populate('orderedItems.product');
-            
-    
+                
         return res.render('userOrders', {
             userLoged,
             order,
@@ -59,10 +58,16 @@ const loadOrdersPage = async (req, res) => {
 
 const orderSummary = async (req,res)=>{
     try {
+
+
         const userLoged = req.session.userLoged
         const id = req.params.id
-
-      
+const email = req.session.userEmail
+  const user = await User.findOne({email:email})
+  if(!user){
+    req.flash('err','user not found')
+    res.redirect('/login')
+  }      
 
         if(!mongoose.Types.ObjectId.isValid(id)){
           return res.status(404).redirect('/404')
@@ -327,29 +332,10 @@ const placeFieldOrders = async (req,res)=>{
       userId,
       status:'Pending Payment',
     })
-
-    for (const item of orderedItems) {
-      const product = await Products.findById(item.product);
-      if (!product) {
-        return res.json({ success: false, message: "Product not found" });
-      }
-
-      if (!product.size[item.size] || product.size[item.size] < item.quantity) {
-        return res.json({
-          success: false,
-          message: `Insufficient stock for size ${item.size}`
-        });
-      }
-
-      product.size[item.size] -= item.quantity;
-      product.quantity -= item.quantity;
-      await product.save();
-      await Cart.deleteOne({userId:userId})
-    }
-    return res.json({success:true,message:'orderPlced',redirectUrl:'/userOrders'})
+     await Cart.deleteOne({userId:userId})
+     return res.json({success:true,message:'orderPlced',redirectUrl:'/userOrders'})
   } catch (error) {
     console.log('field order placing error',error);
-  
   }
 }
 
@@ -383,6 +369,7 @@ const createRazoPayOrder = async (amount) => {
 const retryPayment = async (req, res) => {
   try {
     const { orderId } = req.body;
+    console.log('order id is',orderId)
     const order = await Order.findOne({ _id: orderId });
 
     if (!order) {
@@ -396,7 +383,7 @@ const retryPayment = async (req, res) => {
       key: 'rzp_test_UJHrF4ZCERjDBB', 
       amount: razorpayOrder.amount,
       razorpay_order_id: razorpayOrder.id,
-      orderId:orderId
+      id:orderId
     });
   } catch (error) {
     console.error("Retry payment error:", error);
@@ -404,31 +391,53 @@ const retryPayment = async (req, res) => {
   }
 };
 
-const retryPaymentVerify = async (req,res)=>{
+const retryPaymentVerify = async (req, res) => {
   try {
-  const { order_id,payment_id,signature,orderId} = req.body
+    const { order_id, payment_id, signature, orderId } = req.body;
 
-  const generatedSignature = crypto
-  .createHmac("sha256", 'QucZPITL3a19mTmRO5bvA62u')
-  .update(order_id + "|" + payment_id)
-  .digest("hex");
+    const generatedSignature = crypto
+      .createHmac("sha256", "QucZPITL3a19mTmRO5bvA62u")
+      .update(order_id + "|" + payment_id)
+      .digest("hex");
 
-  if (generatedSignature !== signature) {
-    return res.json({ success: false, message: "Payment verification failed" });
-  }
+   
+    if (generatedSignature !== signature) {
+      return res.json({ success: false, message: "Payment verification failed" });
+    }
+    const order = await Order.findById(orderId).populate("orderedItems.product");
 
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+    await Order.updateOne({ _id: orderId }, { status: "Pending" });
 
-const updateStatus = await Order.updateOne({_id:orderId},{status:'Pending'})
-  res.json({success:true,message:'നന്നിയുണ്ടേ'})
+    for (const item of order.orderedItems) {
+      const product = item.product;
+
+      if (!product) {
+        return res.json({ success: false, message: "Product not found" });
+      }
+
+      if (!product.size[item.size] || product.size[item.size] < item.quantity) {
+        return res.json({
+          success: false,
+          message: `Insufficient stock for size ${item.size}`,
+        });
+      }
+      product.size[item.size] -= item.quantity;
+      product.quantity -= item.quantity;
+      await product.save();
+      
+    }
+    return res.json({ success: true, message: "Payment verified successfully" });
   } catch (error) {
-    console.log('retury payment verification error',error);
+    console.error("Retry payment verification error:", error);
     return res.json({
-      success:false,
-      message:'payment verification error'
-    })
+      success: false,
+      message: "Payment verification error",
+    });
   }
-}
-
+};
 
 
 const downloadInvoice = async (req, res) => {

@@ -43,6 +43,15 @@ const userAuth = async (req,res,next)=>{
 //     }
 // }
 
+
+const auth = async (req,res,next)=>{
+    try {
+        
+    } catch (error) {
+        
+    }
+}
+
 module.exports ={ 
     userCheck,
      userAuth,

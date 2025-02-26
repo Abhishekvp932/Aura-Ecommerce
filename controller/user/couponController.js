@@ -46,7 +46,7 @@ const couponApply = async(req,res)=>{
        }
 
      const value = cart.products.some(item => {
-        if (cart.totalCartPrice < coupon.minPrice || cart.totalCartPrice > coupon.maxPrice) {
+        if (cart.totalCartPrice < coupon.minPrice) {
             return true;
         }
     });
@@ -54,7 +54,7 @@ const couponApply = async(req,res)=>{
     if (value) {
         return res.json({
             success: false,
-            message: `Coupon is only valid for orders between ₹${coupon.minPrice} and ₹${coupon.maxPrice}`
+            message: `If the user makes a purchase of at least ${coupon.minPrice}, then they can apply this coupon.`
         });
     }
         return res.json({success:true,

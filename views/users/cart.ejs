@@ -87,7 +87,7 @@
 
     <div
       class="hero-wrap hero-bread"
-      style="background-image: url('images/bg_6.jpg')"
+      style="background-image: url('/images/cart-banner.webp')"
     >
       <div class="container">
         <div
@@ -95,9 +95,9 @@
         >
           <div class="col-md-9 ftco-animate text-center">
             <p class="breadcrumbs">
-              <span class="mr-2"><a href="/">Home</a></span> <span>Cart</span>
+              <span class="mr-2"  style="color: white;"><a href="/" style="color: white;" >Home</a></span> <span  style="color: white;">Cart</span>
             </p>
-            <h1 class="mb-0 bread">cart</h1>
+            <h1 class="mb-0 bread"  style="color: white;">cart</h1>
           </div>
         </div>
       </div>
@@ -122,6 +122,7 @@
                   </tr>
                 </thead>
                 <tbody>
+                  <% if(cart.length !== 0){ %>
                   <% cart.forEach(cartItem => { %>
                     <tr class="text-center">
                       <td class="product-remove">
@@ -169,6 +170,13 @@
             
                     </tr>
                   <% }) %>
+                  <% }else{ %>
+                    <tr>
+                      <td colspan="7" class="text-center">
+                        <p>No cart items left</p>
+                      </td>
+                    </tr>
+                    <% } %>
                 </tbody>
               </table>
             </div>

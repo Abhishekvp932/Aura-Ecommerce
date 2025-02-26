@@ -140,11 +140,6 @@
                         <label for="minPrice">Minimum Price</label>
                         <input type="number" id="minPrice" placeholder="Enter minimum price" name="minPrice">
                     </div>
-
-                    <div class="form-group">
-                        <label for="maxPrice">Maximum Price</label>
-                        <input type="number" id="maxPrice" placeholder="Enter maximum price" name="maxPrice">
-                    </div>
                 </div>
 
                 <div class="form-row">  
@@ -166,7 +161,6 @@
     const code = document.getElementById('code').value;
     const offer = document.getElementById('offer').value;
     const minPrice = document.getElementById('minPrice').value;
-    const maxPrice = document.getElementById('maxPrice').value;
      const description = document.getElementById('description').value
     try {
         const response = await fetch('/admin/couponAdd',{
@@ -176,7 +170,6 @@
               code,
               offerPrice:offer,
               minPrice,
-              maxPrice,
               description
          })
         })

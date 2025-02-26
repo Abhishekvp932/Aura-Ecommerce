@@ -169,7 +169,9 @@ const updateStatus = async (req, res) => {
 const returnSuccess = async (req, res) => {
   try {
     const id = req.query.data;
+    console.log('what id',id)
     const orderId = req.query.orderId;
+    console.log('what data',orderId)
     const email = req.session.userEmail;
 
     const user = await User.findOne({ email: email });
@@ -194,39 +196,48 @@ const returnSuccess = async (req, res) => {
       return res.status(404).json({ message: "Returned product not found in order" });
     }
 
+    const orders = await Order.findById(orderId).populate("orderedItems");
+
+    if (!orders) {
+      return res.status(404).json({ success: false, message: "Order not found after update" });
+    }
     
-
+    
+    const canceledItem = orders.orderedItems.find(item => item._id.toString() === id);
+    console.log('cancelitems',canceledItem);
+    if (!canceledItem) {
+      return res.status(404).json({ success: false, message: "Canceled product not found in order" });
+    }
+    
     const productData = {
-      orderId: order._id,
+      orderId: orders._id,
       createdOn: new Date(),
-      productName: returnedItem.product?.productName || "Unknown Product",
-      price: returnedItem.totalPrice,
-      status: 'Credit',
-      orderStatus: 'Returned'
+      productName: canceledItem.product?.productName || "Unknown Product",
+      price: canceledItem.totalPrice, 
+      status: "Credit",
+      orderStatus: "Canceled"
     };
-
-   
-    let wallet = await Wallet.findOne({ userId: user._id });
-
+    
+  
+    let wallet = await Wallet.findOne({ userId: orders.userId });
+    
     if (!wallet) {
-      
       wallet = new Wallet({
-        userId: user._id,
-        balance: returnedItem.totalPrice,
+        userId: orders.userId,
+        balance: canceledItem.totalPrice,
         walletData: [productData]
       });
       await wallet.save();
     } else {
-   
       await Wallet.updateOne(
-        { userId: user._id },
+        { userId: orders.userId },
         {
-          $inc: { balance: returnedItem.totalPrice }, 
+          $inc: { balance: canceledItem.totalPrice }, 
           $push: { walletData: productData }          
         }
       );
     }
-
+    
     res.redirect(`/admin/orderDetails/${orderId}`);
 
   } catch (error) {

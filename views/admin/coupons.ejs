@@ -271,7 +271,6 @@
                       <th class="px-4 py-3">NO</th>
                       <th class="px-4 py-3">CODE</th>
                       <th class="px-4 py-3">MIN PRICE</th>
-                      <th class="px-4 py-3">MAX PRICE</th>
                       <th class="px-4 py-3">OFFER PRICE</th>
                       <th class="px-4 py-3">createdOn</th>
                       <th class="px-4 py-3">ACTIONS</th>
@@ -285,7 +284,6 @@
                       <td class="px-4 py-3"><%= i+1 %></td>
                       <td class="px-4 py-3"><%= coupon[i].code %></td>
                       <td class="px-4 py-3">₹<%= coupon[i].minPrice %></td>
-                      <td class="px-4 py-3">₹<%= coupon[i].maxPrice %></td>
                       <td class="px-4 py-3">₹<%= coupon[i].offerPrice %></td>
                       <td class="px-4 py-3"><%= new Date(coupon[i].createdOn).toLocaleDateString('en-US', { 
                         year: 'numeric', 
