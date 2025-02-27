@@ -660,7 +660,7 @@ const loadWallet = async (req, res) => {
         }
 
         // First, get the total count of walletData transactions
-        const wallet = await Wallet.findOne({ userId: user._id }).populate('walletData');
+        const wallet = await Wallet.findOne({ userId: user._id }).populate('walletData').populate('userId');
         
         if (!wallet) {
              res.render('wallet', {

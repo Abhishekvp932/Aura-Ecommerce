@@ -214,15 +214,23 @@
     <div class="container py-5">
         <div class="row">
           <!-- Wallet Balance Card -->
-          <div class="col-lg-4 mb-4">
-            <div class="card h-100 shadow-sm">
-              <div class="card-body">
-                <h4 class="card-title text-center mb-4">Wallet Balance</h4>
-                <h2 class="text-center text-primary mb-4">₹<%= data.balance %></h2>
-                <!-- <div class="d-grid gap-2">
-                  <button class="btn btn-primary btn-lg mb-2">Add Money</button>
-                  <button class="btn btn-outline-primary btn-lg">Withdraw</button>
-                </div> -->
+          <!-- Replace your wallet balance card with this very compact version -->
+          <div class="col-12 mb-4">
+            <div class="card shadow" style="background: linear-gradient(135deg, #7646ae, #653992); border-radius: 10px; overflow: hidden; max-width: 100%;">
+              <div class="card-body text-white py-2 px-3">
+                <div class="row align-items-center">
+                  <div class="col-6">
+                    <div class="d-flex align-items-center">
+                      <i class="icon-credit-card me-2" style="font-size: 18px;"></i>
+                      <span class="small">Wallet Balance</span>
+                    </div>
+                    <h3 class="text-white my-1">₹<%= data.balance %></h3>
+                  </div>
+                  <div class="col-6 text-end">
+                    <div class="large" style="font-size: 20px;margin-left: -10px;"><%= data.userId.name || 'User Name' %></div>
+                    <div class="small text-white-50">Valid: <%= new Date().getMonth() + 1 %>/<%= new Date().getFullYear() % 100 + 5 %></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
