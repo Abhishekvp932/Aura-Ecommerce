@@ -323,12 +323,14 @@ const sendForgotPassOTP =async (req,res)=>{
         if(!email){
             req.flash('ermsg','Email required');
             return res.redirect('/repassEmail');
-        }else if (!emailPattern.test(email)){
+        }
+        if (!emailPattern.test(email)){
         req.flash('ermsg','Email pattern does not match')
         return res.redirect('/repassEmail');
-        }else if(!changePassEmail){
+        }
+         if(!changePassEmail){
     req.flash('ermsg','This Email is Not exists');
-    return req.redirect('/repassEmail');
+     return res.redirect('/repassEmail');
         }
         req.session.userEmail = email
         const otp = generateOtp();
