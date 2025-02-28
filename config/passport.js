@@ -14,6 +14,7 @@ passport.use(new googleStrategy({
     scope:['profile','email'],
     prompt: 'select-account'
 },
+
 async (accessToken,refreshToken,profile,done) =>{
     try {
         let user = await User.findOne({googleId:profile.id})

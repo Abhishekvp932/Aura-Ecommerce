@@ -8,6 +8,7 @@ const nocache = require('nocache');
 const passport = require('./config/passport');
 const userRouter = require('./routes/userRouter');
 const adminRouter = require('./routes/adminRouter');
+
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(session({
@@ -33,8 +34,6 @@ const db=require('./config/db');
 db()
 app.use('/',userRouter);
 app.use('/admin',adminRouter);
-
-
 app.use((req,res)=>{
     res.status(404)
      res.render('404')
