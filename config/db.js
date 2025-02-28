@@ -10,10 +10,10 @@ const connectdb = async ()=>{
         console.log(conn.connection.name)
         console.log('database connected');
         
-    } catch (error) {
+    } catch (error) {   
 	console.log("error is: ",error.message)   
 
-    
+
 console.log("error",error)        
 console.log('database connection error');
 
