@@ -276,7 +276,6 @@ const categories = await Category.find({ isListed: true });
     } catch (error) {
         console.log("home page not found")
         res.status(500).send('server error')
-       return res.status(404).redirect('/page-404')
     }
 } 
 
