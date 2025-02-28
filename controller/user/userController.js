@@ -319,7 +319,7 @@ const sendForgotPassOTP =async (req,res)=>{
     try {
         const {email} = req.body;
         const emailPattern = /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/;
-        const changePassEmail = await User.find({email:email});
+        const changePassEmail = await User.findOne({email:email});
         if(!email){
             req.flash('ermsg','Email required');
             return res.redirect('/repassEmail');
