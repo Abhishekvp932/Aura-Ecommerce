@@ -293,26 +293,29 @@
                     role="tablist"
                     aria-multiselectable="true"
                   >
-                    <div class="panel panel-default">
-                      <div class="panel-heading" role="tab" id="headingOne">
-                        <h4 class="panel-title">
-                       
-                          <ul>
+                  <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingOne">
+                      <h4 class="panel-title">
+                        <form>
+                          <ul class="list-unstyled">
                             <% for (let i = 0; i < category.length; i++) { %>
-                              <li><a href="/category/<%=category[i]._id%>"><%= category[i].name %></a></li>
+                              <li class="mb-2">
+                                <div class="form-check">
+                                  <input class="form-check-input" type="radio" name="categoryRadio" id="category<%= i %>" value="<%=category[i]._id%>" onchange="window.location.href='/category/<%=category[i]._id%>'">
+                                  <label class="form-check-label" for="category<%= i %>">
+                                    <%= category[i].name %>
+                                  </label>
+                                </div>
+                              </li>
                             <% } %>
                           </ul>
-                        </h4>
-                      </div>
-                      <div
-                        id="collapseOne"
-                        class="panel-collapse collapse"
-                        role="tabpanel"
-                        aria-labelledby="headingOne"
-                      >
-                        <!-- <div class="panel-body"> -->
-                        </div>
-                      </div>
+                        </form>
+                      </h4>
+                    </div>
+                    <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                      <!-- <div class="panel-body"> -->
+                    </div>
+                  </div>
                     </div>
                     
               <div class="sidebar-box-2">

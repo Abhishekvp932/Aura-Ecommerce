@@ -314,33 +314,31 @@ select.form-control:focus {
               <div class="sidebar-box-2">
                 <h2 class="heading">Categories</h2>
                 <div class="fancy-collapse-panel">
-                  <div
-                    class="panel-group"
-                    id="accordion"
-                    role="tablist"
-                    aria-multiselectable="true"
-                  >
+                  <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
                     <div class="panel panel-default">
                       <div class="panel-heading" role="tab" id="headingOne">
                         <h4 class="panel-title">
-                       
-                          <ul>
-                            <% for (let i = 0; i < allCategory.length; i++) { %>
-                              <li><a href="/category/<%= allCategory[i]._id%>"><%=allCategory[i].name %></a></li>
-                            <% } %>
-                          </ul>
+                          <form>
+                            <ul class="list-unstyled">
+                              <% for (let i = 0; i < allCategory.length; i++) { %>
+                                <li class="mb-2">
+                                  <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="categoryRadio" id="category<%= i %>" value="<%= allCategory[i]._id %>" onchange="window.location.href='/category/<%= allCategory[i]._id %>'">
+                                    <label class="form-check-label" for="category<%= i %>">
+                                      <%= allCategory[i].name %>
+                                    </label>
+                                  </div>
+                                </li>
+                              <% } %>
+                            </ul>
+                          </form>
                         </h4>
                       </div>
-                      <div
-                        id="collapseOne"
-                        class="panel-collapse collapse"
-                        role="tabpanel"
-                        aria-labelledby="headingOne"
-                      >
+                      <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
                         <!-- <div class="panel-body"> -->
-                        </div>
                       </div>
                     </div>
+                  </div>
                     
               <div class="sidebar-box-2">
                 <h2 class="heading">Price Range</h2>
