@@ -100,7 +100,7 @@
   <div class="update-status">
     <h3>Update Order Status</h3>
     <div class="status-dropdown">
-      <% if(orderData.status !== 'Delivered') {%>
+      <% if(orderData.status !== 'Delivered' && orderData.status !=='Returned' && orderData.status !== 'Pending Payment' && orderData.status!== 'Cancelled' && orderData.status !== 'Return Request' && orderData.status !=='Return Denied') {%>
       <form action="/admin/updateStatus/<%= orderData._id %>" method="POST">
         <select name="newStatus">
           <option value="Pending" <%= orderData.status === 'Pending' ? 'selected' : '' %>>Pending</option>
@@ -110,9 +110,19 @@
         </select>
         <button type="submit" class="update-button">Update Status</button>
       </form>
-      <% } else { %>
+      <% } else if(orderData.status === 'Delivered' && orderData !== 'Returned' && orderData.status !== 'Pending Payment' && orderData !== 'Cancelled' && orderData.status !== 'Return Request' && orderData.status !=='Return Denied') { %>
         <button class="text-success"  style="background-color: #16a34a;color: white;width: 100px;height: 30px;" disabled>Delivered</button>
-      <% } %>
+      <% }else if(orderData.status === 'Returned' && orderData.status !== 'Delivered' && orderData.status !== 'Pending Payment' && orderData !== 'Cancelled' && orderData.status !== 'Return Request' && orderData.status !=='Return Denied'){ %>
+        <span  style="background-color: rgb(238, 246, 5);padding: 15px;color: white;">Returned</span>
+        <% }else if(orderData.status === 'Pending Payment' && orderData.status !== 'Returned' && orderData.status !== 'Delivered' && orderData !== 'Cancelled' && orderData.status !== 'Return Request' && orderData.status !=='Return Denied'){ %>
+          <span class="text-danger" style="background-color: red;padding: 15px;color: white;">Payment Pending</span>
+          <% }else if(orderData.status === 'Cancelled' && orderData.status !== 'Pending Payment' && orderData.status !== 'Returned' && orderData.status !== 'Delivered' && orderData.status !== 'Return Request' && orderData.status !=='Return Denied'){ %>
+            <span class="text-danger" style="background-color: red;padding: 15px;color: white;">Cancelled</span>
+            <% }else if(orderData.status === 'Return Request' && orderData.status !== 'Cancelled' && orderData.status !== 'Pending Payment' && orderData.status !== 'Returned' && orderData.status !== 'Delivered' && orderData.status !=='Return Denied'){ %>
+              <span class="text-danger" style="background-color: rgb(238, 255, 0);padding: 15px;color: white;">Return Request</span>
+            <% }else if(orderData.status === 'Return Denied' && orderData.status !== 'Return Request' && orderData.status !== 'Cancelled' && orderData.status !== 'Pending Payment' && orderData.status !== 'Returned' && orderData.status !== 'Delivered'){ %>
+              <span class="text-danger" style="background-color: rgb(254, 57, 2);padding: 15px;color: white;">Return Rejected</span>
+            <% } %>
     </div>
   </div>
 </div>

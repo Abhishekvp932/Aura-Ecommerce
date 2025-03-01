@@ -103,7 +103,7 @@ const loadAdminOrders = async (req, res) => {
 
 const loadOrderDetails = async (req, res) => {
   try {
-    const id = req.params.id;
+    const id = req.params.id.trim();
 
       const orders = await Order.findOne({_id:id}).sort({createdOn:-1}).populate('orderedItems.product')
 
@@ -157,7 +157,7 @@ const updateStatus = async (req, res) => {
       id,
       { $set: { status: newStatus } },
       { new: true }
-    );
+    );    
     res.redirect("/admin/orders");
   } catch (error) {
     console.log("order status updating error", error);
@@ -250,7 +250,7 @@ const returnSuccess = async (req, res) => {
 const rejectReturn = async (req,res)=>{
   
   try {
-    
+    console.log('1')
    const id = req.query.data.trim();
    const orderId = req.query.orderId.trim()
 
@@ -348,6 +348,7 @@ const returnApprov = async (req, res) => {
 const returnReject = async(req,res)=>{
   try {
     const {orderId} = req.query
+    // console.log('data',data,'order id',orderId)
 
     const order = await Order.findById(orderId)
     if(!order){

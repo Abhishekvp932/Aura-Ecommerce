@@ -355,12 +355,12 @@
                <span>Quantity:<%= orders.orderedItems[i].quantity %></span>
              
               <span> Product Price:₹<%= orders.orderedItems[i].price%></span>
-              <% if(orders.status === 'Delivered' && orders.orderedItems[i].status !== 'Return Request' && orders.orderedItems[i].status !== 'Cancelled' &&  orders.orderedItems[i].status !== 'Returned' && orders.status !== 'Pending Payment'){ %>
+              <% if(orders.status === 'Delivered' && orders.orderedItems[i].status !== 'Return Request' && orders.orderedItems[i].status !== 'Cancelled' &&  orders.orderedItems[i].status !== 'Returned' && orders.status !== 'Pending Payment' && orders.orderedItems[i].status !=='Return Denied'){ %>
                 <button  class="btn btn-primary" style="background-color: #007bff;" id="return" onclick="returnReson('<%= orders.orderedItems[i]._id %>')" >Return</button> 
                 <% }else if(orders.orderedItems[i].status === 'Return Request' || orders.orderedItems[i].status === 'Returned'){ %>
                   <span class="text-danger">Return request Addedd</span>  
                   
-                  <% }else if(orders.orderedItems[i].status !== 'Cancelled' && orders.status !== 'Cancelled'  &&  orders.orderedItems[i].status !== 'Returned' && orders.status !== 'Pending Payment'){ %>
+                  <% }else if(orders.orderedItems[i].status !== 'Cancelled' && orders.status !== 'Cancelled'  &&  orders.orderedItems[i].status !== 'Returned' && orders.status !== 'Pending Payment' && orders.orderedItems[i].status !== 'Return Denied'){ %>
                     <span style="margin-left: 0px;">
                       <a href="/cancel/<%= orders._id %>/product/<%= orders.orderedItems[i]._id %>" 
                         class="btn btn-danger" 
@@ -369,11 +369,13 @@
                        Cancel
                      </a>                                      
                     </span>
-                    <% }else if(orders.status === 'Pending Payment' && orders.orderedItems[i].status !== 'Return Request' && orders.orderedItems[i].status !== 'Cancelled' &&  orders.orderedItems[i].status !== 'Returned') {%>
+                    <% }else if(orders.status === 'Pending Payment' && orders.orderedItems[i].status !== 'Return Request' && orders.orderedItems[i].status !== 'Cancelled' &&  orders.orderedItems[i].status !== 'Returned' && orders.orderedItems[i].status !=='Return Denied') {%>
                       <span class="text-danger">Payment Pending</span>
+                      <% }else if(orders.orderedItems[i].status ==='Return Denied' && orders.status !== 'Pending Payment' && orders.orderedItems[i].status !== 'Return Request' && orders.orderedItems[i].status !== 'Cancelled' &&  orders.orderedItems[i].status !== 'Returned' ){ %>
+                        <span class="text-danger">Return Request Rejected</span>
                       <% }else{ %>
-                      <span class="text-danger">Cancelled</span>
-                      <% } %>
+                        <span class="text-danger">Cancelled</span>
+                   <% } %>
               </div>
             </div>
             <% } %>
@@ -502,14 +504,13 @@ console.log('return product id is',productId)
       .then(data=>{
         if(data.success){
           swal.fire({
-            title:'Return request',
+            title:'success',
             text:data.message,
+            icon:'success'
             
-          })
-          modal.style.display = 'none'
-          const queryString = new URLSearchParams(orders).toString();
-          window.location.href = redirectUrl
-
+          }).then(()=>{
+            window.location.reload();
+          });
         }else{
           swal.fire({
             title:'Error',

@@ -25,7 +25,7 @@ const orderSchema = new Schema({
           },
           status: {
             type: String,
-            enum: ["Ordered", "Cancelled",'Return Request','Returned','Return Denied'],
+            enum: ["Ordered", "Cancelled",'Return Request','Returned','Return Denied','Pending','Delivered','Shipped'],
             default:'Ordered'
           },
           size:{
