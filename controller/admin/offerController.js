@@ -12,14 +12,14 @@ const router = require("../../routes/userRouter");
 const Address = require('../../models/addressSchema');
 const cron = require('node-cron')
 
-// cron.schedule("* * * * *", async () => {
-//   try {
-//     const now = new Date();
-//     await Offer.deleteMany({ endDate: { $lt: now } });
-//   } catch (error) {
-//     console.error("Error deleting expired offers:", error);
-//   }
-// });
+cron.schedule("* * * * *", async () => {
+  try {
+    const now = new Date();
+    await Offer.deleteMany({ endDate: { $lt: now } });
+  } catch (error) {
+    console.error("Error deleting expired offers:", error);
+  }
+});
 
 const loadOffer = async (req, res) => {
     try {
