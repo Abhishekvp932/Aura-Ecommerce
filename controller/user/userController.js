@@ -162,17 +162,27 @@ const loadLogin = async(req,res)=>{
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
     try {
-        const user = await User.findOne({ email: email, password: password});
+        console.log('1')
+        const user = await User.findOne({ email: email});
         if (!user) {
-            req.flash('err', 'User not found or incorrect password');
+            req.flash('err', 'User not found');
             return res.redirect('/login');
-        }else if(user.isBlocked){
+        }
+        console.log('2')
+        if(user.password !== password){
+            req.flash('err','password incorrect')
+            return res.redirect('/login')
+        }
+        console.log('3')
+         if(user.isBlocked){
             req.flash('err','this user cant access the page');
             return res.redirect('/login');
         }
+        console.log('5')
         req.session.userLoged = true;
-        req.session.userEmail = email
+        req.session.userEmail = user.email
         req.session.userId = user._id
+        console.log('6')
         res.redirect('/'); 
     } catch (error) {
         console.error('Login page not working:', error);
@@ -192,24 +202,39 @@ function genarateRefferalCode(length = 8){
 
 
 const signup = async(req,res)=>{    
-    const email = req.session.userEmail;
-     const {name,password,confirmpassword,phone,referralCode} = req.body;
+    // const email = req.session.userEmail;
+     const {name,password,confirmpassword,phone,referralCode,email} = req.body;
 
      let refferal = genarateRefferalCode();
 
-
+     const userExists = await User.findOne({ email });
+     console.log('userExists',userExists)
+     if (userExists) {
+         req.flash('err', 'Email already in use');
+         return res.render('signup', { msg: req.flash('err') });
+     }
 
      const passwordpattern = /^[A-Za-z0-9]{6,}$/
      if(!passwordpattern.test(password)){
         req.flash('err','password doesnt match the criteria')
         return res.render('signup',{msg:req.flash('err')})
-     }else if(password !== confirmpassword){
+     }
+      if(password !== confirmpassword){
         req.flash('err','Passwords do not match. Please ensure both fields are identical')
         return res.render('signup',{msg:req.flash('err')});
-     }else if(name == ''||password == ''|| confirmpassword =='' || phone == ''){
-         req.flash('err','all filed must be required')
-         res.render('signup',{msg:req.flash('err')})
      }
+      if(name == ''||password == ''|| confirmpassword =='' || phone == '' || email == ''){
+         req.flash('err','all filed must be required')
+        return res.render('signup',{msg:req.flash('err')})
+     }
+     if(referralCode){
+        const refferedUser = await User.findOne({referralCode:referralCode})
+    if(!refferedUser){
+     req.flash('err','Invalid referral code')
+     return res.render('signup',{msg:req.flash('err')})
+    }
+     }
+ 
     const newUser =  await User.insertMany({
         email:email,
         name:name,

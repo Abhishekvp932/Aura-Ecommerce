@@ -42,8 +42,6 @@
         },
         referalCode:{
             type:String,
-            //  required:true,
-
         },
         referredBy: { 
             type: String, 

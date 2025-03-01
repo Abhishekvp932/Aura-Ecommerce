@@ -12,13 +12,13 @@ const userCheck = async (req,res,next)=>{
         }
         next()
     } catch (error) {
-        console.log('user umbie',error);
+        console.log('user',error);
         res.status(500).send('server error')
     }
 }
 const userAuth = async (req,res,next)=>{
     try {
-        const userLogged = req.session.userLoged
+        const userLogged = req.session.userId 
         if(!userLogged){
             next();
         }else{
