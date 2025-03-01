@@ -247,6 +247,7 @@ const updateCart = async (req, res) => {
           success: false,
           message: 'Stock not available'
         });
+        
       }else if(currentQuantity + 1 > 5){
         return res.json({
           success:false,
