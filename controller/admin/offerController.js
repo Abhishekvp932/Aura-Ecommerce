@@ -49,49 +49,50 @@ const loadOffer = async (req, res) => {
 
   const addOffer = async (req, res) => {
     try {
-        const { categoryy, startDate, endDate, minPrice, maxPrice, offer } = req.body;
-
-        if (!categoryy || !startDate || !endDate || !minPrice || !maxPrice || !offer) {
-            return res.json({
-                success: false,
-                message: "All fields are required",
-            });
-        }
-        
-        const startDateUTC = new Date(startDate).toISOString();
-        const endDateUTC = new Date(endDate).toISOString();
-
-        const category = await Category.findOne({ name: categoryy });
-        if (!category) {
-            return res.json({
-                success: false,
-                message: "Category not found",
-            });
-        }
-
-        const offerData = new Offer({
-            startDate: startDateUTC,
-            endDate: endDateUTC,
-            minPrice,
-            maxPrice,
-            category: category._id,
-            offer,
+  
+      const { categoryy, startDate, endDate, minPrice, maxPrice, offer } = req.body;
+  
+     
+      if (!categoryy || !startDate || !endDate || !minPrice || !maxPrice || !offer) {
+        return res.json({
+          success: false,
+          message: "All fields are required",
         });
-
-        await offerData.save();
-
-        res.json({
-            success: true,
-            message: "Offer added successfully",
-            redirectUrl: "/admin/offers",
+      }
+  
+      
+      const category = await Category.findOne({ name: categoryy });
+      if (!category) {
+        return res.json({
+          success: false,
+          message: "Category not found",
         });
-
+      }
+  
+      
+      const offerData = new Offer({
+        startDate,
+        endDate,
+        minPrice,
+        maxPrice,
+        category: category._id,
+        offer,
+      });
+  
+      
+      await offerData.save();
+  
+      res.json({
+        success: true,
+        message: "Offer added successfully",
+        redirectUrl: "/admin/offers",
+      });
+  
     } catch (error) {
-        console.error("Offer adding error:", error);
-        res.status(500).send("Server error");
+      console.error("Offer adding error:", error);
+      res.status(500).send("Server error");
     }
-};
-
+  };
   
 
   const offerList = async(req,res)=>{
