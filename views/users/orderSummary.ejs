@@ -285,7 +285,7 @@
         <!-- Tracking Progress -->
         <div class="tracking-progress">
           <!-- Order Placed -->
-          <div class="tracking-step <%= orders.status === 'Order Placed' || orders.status !== 'Pending' ? 'completed' : '' %>">
+          <div class="tracking-step <%= orders.status === 'Order Placed' || orders.status === 'Pending' ? 'completed' : '' %>">
             <div class="icon">✔</div>
             <p>Order Placed</p>
           </div>
