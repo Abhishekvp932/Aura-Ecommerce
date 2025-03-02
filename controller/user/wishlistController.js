@@ -65,10 +65,12 @@ const addToWishlist = async(req,res)=>{
           }
         const email = req.session.userEmail;
        const user = await User.findOne({email:email})
-
        if(!user){
-        req.flash('err','user not found')
-        return res.redirect('/login')
+        return res.json({
+            success:false,
+            message:'user not found',
+            redirectUrl:'/login'
+        })
        }
        
 

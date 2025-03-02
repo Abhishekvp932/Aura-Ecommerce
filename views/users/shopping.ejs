@@ -560,7 +560,14 @@
               title:'error',
               text:data.message,
               icon:"error"
+            }).then(()=>{
+              console.log('redirect url',data.redirectUrl);
+              
+              if(data.redirectUrl){
+                window.location.href =data.redirectUrl
+              }
             })
+            
           }
 
           console.log('data',data);
@@ -598,7 +605,11 @@
               title:'error',
               text:data.message,
               icon:'error'
-            })
+            }).then(()=>{
+                  if(data.redirectUrl){
+                  window.location.href = data.redirectUrl
+                  }
+                })
           }
            } catch (error) {
             console.log('product adding to wishlist error',error)

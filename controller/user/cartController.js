@@ -309,6 +309,7 @@ const addCart = async(req,res)=>{
     const email = req.session.userEmail
 
     const product = await Products.findById(productId)
+console.log('1');
 
     if(!product){
       return res.json({
@@ -316,15 +317,18 @@ const addCart = async(req,res)=>{
         message:"product not found"
       })
     }
+    console.log('2');
 
     const user = await User.findOne({email:email})
     if(!user){
-      res.json({
+     return res.json({
         success:false,
-        message:'User not found'
+        message:'User not found',
+        redirectUrl:'/login'
       })
-      return res.redirect('/login')
+      
     }
+    console.log('3');
 
     const availableSize = Object.keys(product.size).filter((size)=>  product.size[size]>0);
 
@@ -334,6 +338,7 @@ const addCart = async(req,res)=>{
          message:'No available in stock'
      })
     }
+    console.log('4');
 
     const randomSize = availableSize[Math.floor(Math.random() * availableSize.length)];
  

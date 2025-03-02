@@ -640,7 +640,11 @@ const addToWishlist = async (productId,e) => {
         title: 'Error',
         text: result.message,
         icon: 'error',
-      });
+      }).then(()=>{
+				if(result.redirectUrl){
+				window.location.href = result.redirectUrl
+				}
+			})
     }
   } catch (error) {
     console.error('Error adding to wishlist:', error);
