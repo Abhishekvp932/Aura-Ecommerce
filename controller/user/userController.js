@@ -749,9 +749,9 @@ const loadWallet = async (req, res) => {
         let skip = (page - 1) * limit;
 
         const userLoged = req.session.userLoged;
-        const email = req.session.userId;
+        const email = req.session.userEmail;
 
-        const user = await User.findOne({ _id: email });
+        const user = await User.findOne({ email: email });
         if (!user) {
             req.flash('err', 'User not found');
             return res.redirect('/login');
@@ -761,9 +761,9 @@ const loadWallet = async (req, res) => {
         const wallet = await Wallet.findOne({ userId: user._id }).populate('walletData').populate('userId');
         
         if (!wallet) {
-             res.render('wallet', {
+            return res.render('wallet', {
                 userLoged,
-                wallet:[],
+                wallet:{walletData:[]},
                 totalPage: 0,
                 currentPage: page, 
                 data:0,

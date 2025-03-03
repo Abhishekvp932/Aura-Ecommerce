@@ -224,11 +224,11 @@
                       <i class="icon-credit-card me-2" style="font-size: 18px;"></i>
                       <span class="small">Wallet Balance</span>
                     </div>
-                    <h3 class="text-white my-1">₹<%= data.balance %></h3>
+                    <h3 class="text-white my-1">₹<%= data?.balance %></h3>
                   </div>
                   <div class="col-6 text-end">
-                    <div class="large" style="font-size: 20px;margin-left: -10px;"><%= data.userId.name || 'User Name' %></div>
-                    <div class="small text-white-50">Valid: <%= new Date().getMonth() + 1 %>/<%= new Date().getFullYear() % 100 + 5 %></div>
+                    <div class="large" style="font-size: 20px;margin-left: -10px;"><%= data?.userId?.name || 'User Name' %></div>
+                    <div class="small text-white-50">Valid: <%= new Date()?.getMonth() + 1 %>/<%= new Date()?.getFullYear() % 100 + 5 %></div>
                   </div>
                 </div>
               </div>
