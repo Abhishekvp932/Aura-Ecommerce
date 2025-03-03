@@ -147,7 +147,6 @@ select.form-control:focus {
         .search-input-group:focus-within .search-icon {
             color: #007bff;
         }
-
     </style>
   </head>
   <body class="goto-here">
@@ -320,22 +319,25 @@ select.form-control:focus {
                         <h4 class="panel-title">
                           <form>
                             <ul class="list-unstyled">
-                              <% for (let i = 0; i < allCategory.length; i++) { %>
-                                <li class="mb-2">
-                                  <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="categoryRadio" id="category<%= i %>" value="<%= allCategory[i]._id %>" onchange="window.location.href='/category/<%= allCategory[i]._id %>'">
-                                    <label class="form-check-label" for="category<%= i %>">
-                                      <%= allCategory[i].name %>
-                                    </label>
-                                  </div>
-                                </li>
-                              <% } %>
+                                <% for (let i = 0; i < allCategory.length; i++) { %>
+                                    <li class="mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input category-radio" type="radio" 
+                                                   name="categoryRadio" id="category<%= i %>" 
+                                                   value="<%= allCategory[i]._id %>" 
+                                                   onchange="window.location.href='/category/<%= allCategory[i]._id %>'">
+                                            <label class="form-check-label" for="category<%= i %>">
+                                                <%= allCategory[i].name %>
+                                            </label>
+                                        </div>
+                                    </li>
+                                <% } %>
                             </ul>
-                          </form>
+                        </form>
                         </h4>
                       </div>
                       <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
-                        <!-- <div class="panel-body"> -->
+                      
                       </div>
                     </div>
                   </div>
@@ -378,7 +380,7 @@ select.form-control:focus {
                     </div>
                   </div>
                   
-                  <!-- Preserve sort option when filtering by price -->
+                
                   <% if (sortOption) { %>
                     <input type="hidden" name="sort" value="<%= sortOption %>">
                   <% } %>
@@ -403,103 +405,6 @@ select.form-control:focus {
       </div>
       </div>
     </section>
-
-    <!-- <section class="ftco-gallery">
-      <div class="container">
-        <div class="row justify-content-center">
-          <div class="col-md-8 heading-section text-center mb-4 ftco-animate">
-            <h2 class="mb-4">Follow Us On Instagram</h2>
-            <p>
-              Far far away, behind the word mountains, far from the countries
-              Vokalia and Consonantia, there live the blind texts. Separated
-              they live in
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="container-fluid px-0">
-        <div class="row no-gutters">
-          <div class="col-md-4 col-lg-2 ftco-animate">
-            <a
-              href="/images/gallery-1.jpg"
-              class="gallery image-popup img d-flex align-items-center"
-              style="background-image: url(/images/gallery-1.jpg)"
-            >
-              <div
-                class="icon mb-4 d-flex align-items-center justify-content-center"
-              >
-                <span class="icon-instagram"></span>
-              </div>
-            </a>
-          </div>
-          <div class="col-md-4 col-lg-2 ftco-animate">
-            <a
-              href="/images/gallery-2.jpg"
-              class="gallery image-popup img d-flex align-items-center"
-              style="background-image: url(/images/gallery-2.jpg)"
-            >
-              <div
-                class="icon mb-4 d-flex align-items-center justify-content-center"
-              >
-                <span class="icon-instagram"></span>
-              </div>
-            </a>
-          </div>
-          <div class="col-md-4 col-lg-2 ftco-animate">
-            <a
-              href="/images/gallery-3.jpg"
-              class="gallery image-popup img d-flex align-items-center"
-              style="background-image: url(/images/gallery-3.jpg)"
-            >
-              <div
-                class="icon mb-4 d-flex align-items-center justify-content-center"
-              >
-                <span class="icon-instagram"></span>
-              </div>
-            </a>
-          </div>
-          <div class="col-md-4 col-lg-2 ftco-animate">
-            <a
-              href="/images/gallery-4.jpg"
-              class="gallery image-popup img d-flex align-items-center"
-              style="background-image: url(/images/gallery-4.jpg)"
-            >
-              <div
-                class="icon mb-4 d-flex align-items-center justify-content-center"
-              >
-                <span class="icon-instagram"></span>
-              </div>
-            </a>
-          </div>
-          <div class="col-md-4 col-lg-2 ftco-animate">
-            <a
-              href="/images/gallery-5.jpg"
-              class="gallery image-popup img d-flex align-items-center"
-              style="background-image: url(/images/gallery-5.jpg)"
-            >
-              <div
-                class="icon mb-4 d-flex align-items-center justify-content-center"
-              >
-                <span class="icon-instagram"></span>
-              </div>
-            </a>
-          </div>
-          <div class="col-md-4 col-lg-2 ftco-animate">
-            <a
-              href="/images/gallery-6.jpg"
-              class="gallery image-popup img d-flex align-items-center"
-              style="background-image: url(/images/gallery-6.jpg)"
-            >
-              <div
-                class="icon mb-4 d-flex align-items-center justify-content-center"
-              >
-                <span class="icon-instagram"></span>
-              </div>
-            </a>
-          </div>
-        </div>
-      </div>
-    </section> -->
 
     <%-include('../partials/user/footer.ejs')%>
 
@@ -628,6 +533,20 @@ select.form-control:focus {
            }
     
     }
+
+
+  
+     const currentUrl = window.location.href;
+    const urlParts = currentUrl.split("/"); 
+    const selectedCategoryId = urlParts[urlParts.length - 1]; 
+
+   
+    document.querySelectorAll(".category-radio").forEach(radio => {
+        if (radio.value === selectedCategoryId) {
+            radio.checked = true;
+            radio.closest("li").classList.add("active"); 
+        }
+    });
     </script>
   </body>
 </html>
