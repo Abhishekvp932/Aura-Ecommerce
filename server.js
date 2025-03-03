@@ -39,7 +39,9 @@ app.use((req,res)=>{
      res.render('404')
 })
 
-app.listen(process.env.PORT,()=>{
+const PORT=process.env.PORT || 3005
+
+app.listen(PORT,()=>{
     console.log('server 3005 is runing');
     
 })
