@@ -333,7 +333,7 @@ const placeFieldOrders = async (req,res)=>{
       status:'Pending Payment',
     })
      await Cart.deleteOne({userId:userId})
-     return res.json({success:true,message:'orderPlced',redirectUrl:'/userOrders'})
+     return res.json({success:true,message:'Order placed',redirectUrl:'/userOrders'})
   } catch (error) {
     console.log('field order placing error',error);
   }

@@ -81,6 +81,9 @@ router.post('/retry-payment',userAuth.userCheck,orderController.retryPayment)
 router.post('/verifyPayment',orderController.retryPaymentVerify)
 router.get('/downloadInvoice',orderController.downloadInvoice)
 router.get('/about',userAuth.userCheck,userController.loadAbout)
+router.post('/resendOTPVerify',userController.forgotPassResendOtp)
+
+
 
 router.get('/auth/google',passport.authenticate('google'));
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/login'}),(req,res)=>{

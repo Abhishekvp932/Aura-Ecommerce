@@ -98,6 +98,7 @@ const sendOTP = async (req,res)=>{
     }
 
 }
+
 const resendOTP = async(req,res)=>{
    try {
     const email=req.session.Email
@@ -157,6 +158,37 @@ const verifyOtp = async (req, res) => {
       res.status(500).send('An error occurred. Please try again later.');
     }
   };
+
+
+
+  const forgotPassResendOtp = async(req,res)=>{
+    try {
+     const email=req.session.Email
+     console.log(req.session.userEmail);
+     
+     const otp = generateOtp();
+     req.session.userOtp = otp;
+ 
+ 
+         setTimeout(()=>{
+             delete req.session.userOtp
+             req.session.save((err)=>{
+                 if(err){
+                     console.log('Error deleting session');
+                 }
+             })
+           },60000);
+           
+     await sendVerificationEmail(email,otp);
+      req.flash('succesMsg','Otp resend successfully');
+      res.redirect('/repassOtp');
+    } catch (error) {
+     console.log('resend otp is not working',error);
+     res.status(500).send('server error');
+    }
+ }
+
+
   
 const loadLogin = async(req,res)=>{
     try {
@@ -172,6 +204,12 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
     try {
         console.log('1')
+     
+        if(email == '' || password == ''){
+            req.flash('err','Please Enter the Email id and Password')
+            res.redirect('/login')
+        }
+
         const user = await User.findOne({ email: email});
         if (!user) {
             req.flash('err', 'User not found');
@@ -373,7 +411,7 @@ const sendForgotPassOTP =async (req,res)=>{
     req.flash('ermsg','This Email is Not exists');
      return res.redirect('/repassEmail');
         }
-        req.session.userEmail = email
+        req.session.Email = email
         const otp = generateOtp();
         console.log('password change otp',otp)
         const emailSend = await sendVerificationEmail(email,otp);
@@ -462,7 +500,7 @@ const updateOldPassword = async(req,res)=>{
           )
          
           req.session.userLoged= true
-         res.redirect('/');
+         res.redirect('/login');
     } catch (error) {
         console.log('Change password error',error);
         res.status(500).send('server error');
@@ -789,6 +827,7 @@ module.exports ={
     updatePassword, // password updateing
     changePassword , // user password changing 
     loadWallet,
-    loadAbout
+    loadAbout,
+    forgotPassResendOtp
     
 }
