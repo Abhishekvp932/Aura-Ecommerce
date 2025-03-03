@@ -7,7 +7,7 @@ const offers = require('../../models/offerSchema');
 const Address = require('../../models/addressSchema');
 const Product = require('../../models/productSchema');
 const Order = require('../../models/orderSchema');
-
+const mongoose = require('mongoose')
 const Wallet = require('../../models/walletSchema')
 const {hashPassword,checkPassword} = require('../../helpers/bcrypt')
 
@@ -595,6 +595,11 @@ const loadEditeAddress = async(req,res)=>{
         const userLoged = req.session.userLoged
         const id = req.params.id
 
+
+        if(!mongoose.Types.ObjectId.isValid(id)){
+            return res.status(404).redirect('/404')
+          }
+
         const addressDocument = await Address.findOne({
             "addresses._id": id,
           });
@@ -658,6 +663,11 @@ const profileEdite = async(req,res)=>{
     try {
         const userLoged = req.session.userLoged
         const id = req.params.id 
+
+        if(!mongoose.Types.ObjectId.isValid(id)){
+            return res.status(404).redirect('/404')
+          }
+
         const findUser = await User.findById(id); 
         return res.render('profileEdite',{
             findUser,
@@ -690,7 +700,9 @@ const editeProfile = async(req,res)=>{
 const updatePassword = async(req,res)=>{
     try {
         const id = req.params.id
-       
+       if(!mongoose.Types.ObjectId.isValid(id)){
+          return res.status(404).redirect('/404')
+        }
         return res.render('updatePassword',{msg:req.flash('err')})
     } catch (error) {
        console.log('change password page not found ',error)

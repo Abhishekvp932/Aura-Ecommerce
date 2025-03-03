@@ -11,7 +11,7 @@ const Product = require("../../models/productSchema");
 const router = require("../../routes/userRouter");
 const Address = require('../../models/addressSchema');
 const Cart = require("../../models/cartSchema");
-
+const mongoose = require('mongoose')
 
 const loadProducts = async (req, res) => {
     try {
@@ -115,6 +115,10 @@ const editeProduct = async (req,res)=>{
   try {
     const id = req.params.id;
 
+
+    if(!mongoose.Types.ObjectId.isValid(id)){
+      return res.status(404).redirect('/404')
+    }
     const product = await Product.findById(id);
     const category = await Category.find();
     res.render("editeProduct", { product,category });
@@ -131,6 +135,10 @@ const productEdite = async (req, res) => {
     const products = req.body;
     const id = req.params.id;
 
+    if(!mongoose.Types.ObjectId.isValid(id)){
+      return res.status(404).redirect('/404')
+    }
+    
     const image = [];
     if (req.files && req.files.length > 0) {
       for (let i = 0; i < req.files.length; i++) {

@@ -11,7 +11,7 @@ const Product = require("../../models/productSchema");
 const router = require("../../routes/userRouter");
 const Address = require('../../models/addressSchema');
 
-
+const mongoose = require ('mongoose')
 
 
 
@@ -81,6 +81,10 @@ const loadCategory = async (req, res) => {
   const categoryEdite = async (req, res) => {
     try {
       const id = req.params.id;
+
+      if(!mongoose.Types.ObjectId.isValid(id)){
+        return res.status(404).redirect('/404')
+      }
   
       const findCate = await Category.findById(id);
       res.render("editeCategory", { findCate });

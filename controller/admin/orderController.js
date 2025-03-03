@@ -12,6 +12,7 @@ const router = require("../../routes/userRouter");
 const Address = require("../../models/addressSchema");
 const Order = require("../../models/orderSchema");
 const Wallet = require("../../models/walletSchema")
+const mongoose = require('mongoose')
 const loadAdminOrders = async (req, res) => {
   try {
 
@@ -104,6 +105,10 @@ const loadAdminOrders = async (req, res) => {
 const loadOrderDetails = async (req, res) => {
   try {
     const id = req.params.id.trim();
+
+    if(!mongoose.Types.ObjectId.isValid(id)){
+      return res.status(404).redirect('/404')
+    }
 
       const orders = await Order.findOne({_id:id}).sort({createdOn:-1}).populate('orderedItems.product')
 

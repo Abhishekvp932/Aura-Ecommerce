@@ -124,6 +124,10 @@ const loadOffer = async (req, res) => {
     try {
   
       const id = req.params.id
+
+      if(!mongoose.Types.ObjectId.isValid(id)){
+        return res.status(404).redirect('/404')
+      }
       const offerFind = await Offer.findById(id)
       const category = await Category.find()
       res.render('editeOffer',{offerFind,

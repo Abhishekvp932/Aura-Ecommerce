@@ -271,7 +271,22 @@ const updateAddress = async (req,res)=>{
 
     const addressId = req.params.id
   const  { name, addressType, city, landMark, state, pincode, phone, altPhone } = req.body;
+
 const email = req.session.userEmail
+
+if(name==''||addressType==''|| city==''||landMark==''||pincode==''||phone==''||altPhone==''){
+  return res.json({
+    success:false,
+    message:'Please fill All field'
+  })
+}
+
+// if(phone !==10 || altPhone !== 10){
+//   return res.json({
+//     success:false,
+//     message:'Phone Number must be 10 digits'
+//   })
+// }
 
 const user = await User.findOne({email:email})
     

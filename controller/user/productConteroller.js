@@ -8,7 +8,7 @@ const Address = require('../../models/addressSchema');
 const { applyVirtuals } = require('../../models/orderSchema');
 const { options } = require('../../routes/userRouter');
 
-
+const mongoose = require('mongoose')
 
 
 
@@ -80,8 +80,16 @@ const loadProductDetails = async(req,res)=>{
     try {
       
         const productId = req.params.id;
+
+if(!mongoose.Types.ObjectId.isValid(productId)){
+          return res.status(404).redirect('/404')
+        }
+
         const userLoged = req.session.userLoged;
-         const product = await Products.findById(productId).populate('reviews.userId')
+        const product = await Products.findOne({ _id: productId, isBlocked: false }).populate('reviews.userId')
+        if(!product){
+          return res.redirect('/shopping')
+        }
          const category = await Category.findById(product.category);
         const offer = await offers.findOne({isActive:true}) 
         const allProduct = await Products.find({category: category._id})
@@ -106,7 +114,6 @@ const loadProductDetails = async(req,res)=>{
     } 
     const ranNum=Array.from(randomNum)
    
-
     res.render('product-details', {
         userLoged,
         product,
@@ -132,6 +139,10 @@ const eachCategory = async (req, res) => {
     let page = parseInt(req.query.page, 10) || 1;
     let limit = 9;
 
+    if(!mongoose.Types.ObjectId.isValid(id)){
+          return res.status(404).redirect('/404')
+        }
+
     const category = await Category.find({ _id: id });
     if (!category) {
       return res.redirect('/page-404');
@@ -141,7 +152,7 @@ const eachCategory = async (req, res) => {
     const offerActive = await offers.find({ isActive: true });
     const allCategory = await Category.find({isListed:true});
 
-    let query = { category: id };
+    let query = { category: id ,isBlocked:false};
     
     if (priceFrom && priceTo) {
       query.regularPrice = {
