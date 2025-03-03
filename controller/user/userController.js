@@ -749,9 +749,9 @@ const loadWallet = async (req, res) => {
         let skip = (page - 1) * limit;
 
         const userLoged = req.session.userLoged;
-        const email = req.session.userEmail;
+        const email = req.session.userId;
 
-        const user = await User.findOne({ email: email });
+        const user = await User.findOne({ _id: email });
         if (!user) {
             req.flash('err', 'User not found');
             return res.redirect('/login');
