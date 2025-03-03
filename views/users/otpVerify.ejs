@@ -170,6 +170,9 @@
       let timeRemaining = 60; // 1 minute
       const timerDisplay = document.getElementById('timer');
       const resendButton = document.getElementById('resendValidate');
+      
+      // Make sure the button is disabled initially
+      resendButton.setAttribute('disabled', 'disabled');
 
       const countdown = setInterval(() => {
         if (timeRemaining > 0) {

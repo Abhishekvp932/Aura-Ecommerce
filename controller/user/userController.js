@@ -9,6 +9,7 @@ const Product = require('../../models/productSchema');
 const Order = require('../../models/orderSchema');
 
 const Wallet = require('../../models/walletSchema')
+const {hashPassword,checkPassword} = require('../../helpers/bcrypt')
 
 const signupEmail = async (req,res)=>{
     try {
@@ -55,10 +56,17 @@ const sendOTP = async (req,res)=>{
         if(!email){
             req.flash('emailReq','Emails is requierd')
             return res.redirect('/verifyEmail')
-        }else if(!emailPattern.test(email)){
+        }
+         if(!emailPattern.test(email)){
             req.flash('emailReq','Email pattern does not match')
             return res.redirect('/verifyEmail');
         }
+           const userExists = await User.findOne({ email });
+     console.log('userExists',userExists)
+     if (userExists) {
+         req.flash('emailReq', 'Email already in use');
+         return res.redirect('/verifyEmail')
+     }
 
         req.session.userEmail=email
 
@@ -69,7 +77,7 @@ const sendOTP = async (req,res)=>{
            res.redirect('/verifyEmail');
         }
         req.session.userOtp = otp;
-        req.session.userEmail = email
+        req.session.Email = email
 
         setTimeout(()=>{
             delete req.session.userOtp
@@ -92,7 +100,7 @@ const sendOTP = async (req,res)=>{
 }
 const resendOTP = async(req,res)=>{
    try {
-    const email=req.session.userEmail
+    const email=req.session.Email
     console.log(req.session.userEmail);
     
     const otp = generateOtp();
@@ -123,6 +131,7 @@ const verifyOtp = async (req, res) => {
       
       let storedOtp = req.session.userOtp;
       
+      const email = req.session.Email
       
       if (!storedOtp) {
         req.flash('errorMsg', 'OTP has expired or is missing. Please try again.');
@@ -131,7 +140,7 @@ const verifyOtp = async (req, res) => {
   
      
       const { otp } = req.body;  
-      // Validate OTP
+   
       if (otp !== storedOtp) {
         req.flash('errorMsg', 'Invalid OTP. Please try again.');
         return res.redirect('/otpVerify'); 
@@ -142,7 +151,7 @@ const verifyOtp = async (req, res) => {
     console.log(req.session.userOtp);
      
       
-      return res.render('signup', {msg:req.flash('err')}); 
+    return res.render('signup',{msg:req.flash('err'),email});
     } catch (error) {
       console.error('Error verifying OTP:', error);
       res.status(500).send('An error occurred. Please try again later.');
@@ -168,8 +177,9 @@ const loginUser = async (req, res) => {
             req.flash('err', 'User not found');
             return res.redirect('/login');
         }
-        console.log('2')
-        if(user.password !== password){
+ const isPasswordValid = await checkPassword (password,user.password)
+
+        if(!isPasswordValid){
             req.flash('err','password incorrect')
             return res.redirect('/login')
         }
@@ -178,6 +188,8 @@ const loginUser = async (req, res) => {
             req.flash('err','this user cant access the page');
             return res.redirect('/login');
         }
+  
+
         console.log('5')
         req.session.userLoged = true;
         req.session.userEmail = user.email
@@ -203,44 +215,44 @@ function genarateRefferalCode(length = 8){
 
 const signup = async(req,res)=>{    
     // const email = req.session.userEmail;
-     const {name,password,confirmpassword,phone,referralCode,email} = req.body;
+ const email = req.session.Email
+
+     const {name,password,confirmpassword,phone,referralCode} = req.body;
 
      let refferal = genarateRefferalCode();
-
-     const userExists = await User.findOne({ email });
-     console.log('userExists',userExists)
-     if (userExists) {
-         req.flash('err', 'Email already in use');
-         return res.render('signup', { msg: req.flash('err') });
-     }
 
      const passwordpattern = /^[A-Za-z0-9]{6,}$/
      if(!passwordpattern.test(password)){
         req.flash('err','password doesnt match the criteria')
-        return res.render('signup',{msg:req.flash('err')})
+        return res.render('signup',{msg:req.flash('err'),email});
      }
       if(password !== confirmpassword){
         req.flash('err','Passwords do not match. Please ensure both fields are identical')
-        return res.render('signup',{msg:req.flash('err')});
+        return res.render('signup',{msg:req.flash('err'),email});
      }
-      if(name == ''||password == ''|| confirmpassword =='' || phone == '' || email == ''){
+      if(name == ''||password == ''|| confirmpassword =='' || phone == ''){
          req.flash('err','all filed must be required')
-        return res.render('signup',{msg:req.flash('err')})
+         return res.render('signup',{msg:req.flash('err'),email});
      }
+     if(phone.length !== 10){
+            req.flash('err','Phone Number must 10 digits')
+            return res.render('signup',{msg:req.flash('err'),email});
+     }
+
      if(referralCode){
         const refferedUser = await User.findOne({referralCode:referralCode})
     if(!refferedUser){
      req.flash('err','Invalid referral code')
-     return res.render('signup',{msg:req.flash('err')})
+     return res.render('signup',{msg:req.flash('err'),email});
     }
      }
+     const hashedPassword = await hashPassword(password);
  
     const newUser =  await User.insertMany({
         email:email,
         name:name,
         phone:phone,
-        password:password,
-        confirmpassword:confirmpassword,
+        password:hashedPassword,
         referalCode:refferal,
         referredBy:referralCode
 
@@ -268,7 +280,8 @@ const signup = async(req,res)=>{
 }
 const loadSignup = async(req,res)=>{
     try {
-        return res.render('signup',{msg:req.flash('err')});
+        const email = req.session.Email
+        return res.render('signup',{msg:req.flash('err'),email});
     } catch (error) {
         console.log('signUp page not found')
         res.status(500).send('server error')
@@ -306,9 +319,12 @@ const categories = await Category.find({ isListed: true });
 
 const logOut = async (req,res)=>{
     try {
-        req.session.destroy(()=>{
-            res.redirect('/')
-        }); 
+      if(req.session.userId){
+        delete req.session.userId
+        delete req.session.userLoged
+        delete req.session.userEmail
+      } 
+      res.redirect('/login')
     } catch (error) {
         console.error('logout error');
         res.status(500).send('server error');
@@ -359,6 +375,7 @@ const sendForgotPassOTP =async (req,res)=>{
         }
         req.session.userEmail = email
         const otp = generateOtp();
+        console.log('password change otp',otp)
         const emailSend = await sendVerificationEmail(email,otp);
         if(!emailSend){
            res.redirect('/repassEmail');
@@ -433,13 +450,15 @@ const updateOldPassword = async(req,res)=>{
          if(newPassword!==cnfmPassword){
             req.flash('ermsg','Password does not match')
             return res.redirect('/changePassword'); 
-         }else if(newPassword == ''||cnfmPassword==''){
+         }
+          if(newPassword == ''||cnfmPassword==''){
             req.flash('ermsg','All field required')
             return res.redirect('/changePassword');
          }
+         const hashedPassword = await hashPassword(cnfmPassword)
          await User.updateOne(
             { email: userEmail },
-            { $set: { password: cnfmPassword } }
+            { $set: { password: hashedPassword } }
           )
          
           req.session.userLoged= true
@@ -634,7 +653,6 @@ const updatePassword = async(req,res)=>{
     try {
         const id = req.params.id
        
-
         return res.render('updatePassword',{msg:req.flash('err')})
     } catch (error) {
        console.log('change password page not found ',error)
@@ -645,13 +663,16 @@ const changePassword = async (req,res)=>{
     try {
         const {oldPassword,newPassword,cnfmPassword} = req.body
         const email = req.session.userEmail
+      console.log('wich user is here',email)
 
-        const userData = await User.findOne({password:oldPassword})
+        const userData = await User.findOne({email:email})
         if(oldPassword == ''|| newPassword == ''|| cnfmPassword == ''){
                req.flash('err','All Fields Requierd')
                return res.render('updatePassword',{msg:req.flash('err')})
         }
-        if(!userData){
+        const isPasswordValid = await checkPassword(oldPassword,userData.password)
+
+        if(!isPasswordValid){
             req.flash('err','Old Password Not Match');
             return res.render('updatePassword',{msg:req.flash('err')})
         }
@@ -659,7 +680,8 @@ const changePassword = async (req,res)=>{
                req.flash('err','Password Not Match')
                return res.render('updatePassword',{msg:req.flash('err')})
         }
-        const updateData = await User.updateOne({email:email},{password:cnfmPassword})
+        const hashedPassword = await hashPassword(cnfmPassword)
+        const updateData = await User.updateOne({email:email},{password:hashedPassword})
         res.redirect('/userProfile');
 
     } catch (error) {

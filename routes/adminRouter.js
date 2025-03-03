@@ -14,7 +14,7 @@ const couponController = require('../controller/admin/couponController');
 
 router.post('/adminVerify',adminController.adminLogin);
 router.get('/',adminController.loadLogin);
-router.post('/adminLogout',adminCheck,adminController.adminLogout);
+router.post('/adminLogout',adminController.adminLogout);
 router.get('/dashboard',adminCheck,adminController.loadDashboard);
 router.get('/products',adminCheck,productsController.loadProducts);
 router.get('/orders',adminCheck,orderController.loadAdminOrders);

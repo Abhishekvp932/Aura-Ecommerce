@@ -174,13 +174,15 @@ const adminLogin = async (req, res) => {
 const adminLogout = async (req, res) => {
   try {
    
-    req.session.destroy(() => {
-      res.redirect("/admin");
-    });
+  if(req.session.admin){
+  delete req.session.admin
+  delete req.session.isLogged
+  }
+  res.redirect('/admin')
   
   } catch (error) {
     console.log("admin logout error");
-    res.status(500).send("server erro");
+    res.status(500).send("server error");
   }
 };
 

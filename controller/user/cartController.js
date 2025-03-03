@@ -71,7 +71,7 @@ const addToCart = async (req, res) => {
     const email = req.session.userEmail;
 
     const product = await Products.findById(productId);
-    if (!product) {
+    if (!product || product.isBlocked) {
       req.flash('err', 'Product not found');
       return res.redirect(`/product-details/${productId}`);
     }
