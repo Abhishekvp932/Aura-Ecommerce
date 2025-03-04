@@ -15,10 +15,29 @@ const Coupon = require("../../models/couponSchema");
 
 const loadCoupons = async (req, res) => {
   try {
-    const coupon = await Coupon.find();
+
+
+    let page = 1;
+    if (req.query.page) {
+      page = parseInt(req.query.page, 10);
+    }
+    let limit = 7;
+
+    let skip = (page - 1) * limit;
+
+;
+
+    const coupon = await Coupon.find().limit(limit * 1)
+    .skip(skip)
+
+    const count = await Coupon.countDocuments()
+    const totalPage = Math.ceil(count / limit)
 
     res.render("coupons", {
       coupon,
+      count,
+      totalPage,
+      currentPage: page
     });
   } catch (error) {
     console.log("count page loading error", error);

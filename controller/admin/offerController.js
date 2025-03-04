@@ -23,10 +23,25 @@ cron.schedule("* * * * *", async () => {
 
 const loadOffer = async (req, res) => {
   try {
-    const offers = await Offer.find().populate("category");
+
+    let page = 1;
+    if (req.query.page) {
+      page = parseInt(req.query.page, 10);
+    }
+    let limit = 7;
+
+    let skip = (page - 1) * limit;
+
+    const offers = await Offer.find().limit(limit * 1)
+    .skip(skip).populate("category");
+    const count = await Offer.countDocuments()
+    const totalPage = Math.ceil(count / limit)
 
     return res.render("offers", {
       offers,
+      count,
+      totalPage,
+      currentPage: page
     });
   } catch (error) {
     console.log("offer page not found");
