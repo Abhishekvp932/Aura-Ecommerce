@@ -3,20 +3,19 @@ const User = require("../../models/userSchema");
 const { options } = require("../../routes/userRouter");
 const Category = require("../../models/categorySchema");
 const Products = require("../../models/productSchema");
-const Offer = require('../../models/offerSchema');
+const Offer = require("../../models/offerSchema");
 const path = require("path");
 const sharp = require("sharp");
 const fs = require("fs");
 const Product = require("../../models/productSchema");
 const router = require("../../routes/userRouter");
-const Address = require('../../models/addressSchema');
+const Address = require("../../models/addressSchema");
 const Order = require("../../models/orderSchema");
 const PDFDocument = require("pdfkit");
 const XLSX = require("xlsx");
 
 const loadDashboard = async (req, res) => {
   try {
-
     let page = 1;
     if (req.query.page) {
       page = parseInt(req.query.page, 10);
@@ -25,111 +24,113 @@ const loadDashboard = async (req, res) => {
 
     let skip = (page - 1) * limit;
 
-    
+    const userCount = await User.countDocuments();
 
-
-
-    const userCount = await User.countDocuments(); 
-     
     const totalSales = await Order.aggregate([
-      { $unwind: "$orderedItems" }, 
+      { $unwind: "$orderedItems" },
       {
         $group: {
           _id: null,
-          totalAmount: { $sum: "$finalAmount" }, 
-          totalOrder: { $sum: 1 }, 
-          totalCouponDiscount: { $sum: "$couponDiscount" }, 
-          totalDiscountPrice: { $sum: "$orderedItems.productDiscount" }, 
-          itemSold: { $sum: 1 } 
-        }
-      }
+          totalAmount: { $sum: "$finalAmount" },
+          totalOrder: { $sum: 1 },
+          totalCouponDiscount: { $sum: "$couponDiscount" },
+          totalDiscountPrice: { $sum: "$orderedItems.productDiscount" },
+          itemSold: { $sum: 1 },
+        },
+      },
     ]);
 
- console.log('total sales',totalSales);
     const salesData = totalSales[0] || {
       totalAmount: 0,
       totalOrder: 0,
       totalDiscount: 0,
-      itemSold :0,
+      itemSold: 0,
     };
-    const pendingOrders = await Order.countDocuments({ status: 'Pending' });
-    const order = await Order.find().sort({createdOn:-1}).limit(limit).skip((page-1)*limit);
+    const pendingOrders = await Order.countDocuments({ status: "Pending" });
+    const order = await Order.find()
+      .sort({ createdOn: -1 })
+      .limit(limit)
+      .skip((page - 1) * limit);
 
     const count = await Order.countDocuments();
     const totalPage = Math.ceil(count / limit);
 
+    const topOrders = await Order.aggregate([
+      { $unwind: "$orderedItems" },
+      {
+        $group: {
+          _id: "$orderedItems.product",
+          orderCount: { $sum: 1 },
+        },
+      },
+      { $sort: { orderCount: -1 } },
+      { $limit: 10 },
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "productDetails",
+        },
+      },
+      { $unwind: "$productDetails" },
+      {
+        $project: {
+          _id: 0,
+          productId: "$_id",
+          name: "$productDetails.productName",
+          orderCount: 1,
+        },
+      },
+    ]);
 
-   const topOrders = await Order.aggregate(
-    [
-      {$unwind:"$orderedItems"},
-      {$group:{
-        _id:"$orderedItems.product",
-        orderCount:{$sum:1}
-      }
-    },
-    {$sort:{orderCount:-1}},
-    {$limit:10},
-    {$lookup:
-      {from:"products",
-         localField:"_id",
-         foreignField:"_id",
-         as:"productDetails"
-      }
-    },
-    {$unwind:'$productDetails'},
-    {$project:{_id:0,productId:"$_id",name:"$productDetails.productName",orderCount:1}}
-    ]
-   )
-   console.log('top ordered products',topOrders);
+    const topCategories = await Order.aggregate([
+      { $unwind: "$orderedItems" },
+      {
+        $lookup: {
+          from: "products",
+          localField: "orderedItems.product",
+          foreignField: "_id",
+          as: "productDetails",
+        },
+      },
+      { $unwind: "$productDetails" },
+      {
+        $group: {
+          _id: "$productDetails.category",
+          categoryCount: { $sum: 1 },
+        },
+      },
+      { $sort: { categoryCount: -1 } },
+      { $limit: 10 },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "_id",
+          foreignField: "_id",
+          as: "categoryDetails",
+        },
+      },
+      { $unwind: "$categoryDetails" },
+      {
+        $project: {
+          _id: 0,
+          category: "$_id",
+          name: "$categoryDetails.name",
+          categoryCount: 1,
+        },
+      },
+    ]);
 
-
-   const topCategories = await Order.aggregate(
-    [
-      {$unwind:"$orderedItems"},
-       {
-        $lookup:{
-          from:"products",
-          localField:"orderedItems.product",
-          foreignField:"_id",
-          as:"productDetails"
-        }
-       },
-       {$unwind:"$productDetails"},
-       {$group:{
-        _id:"$productDetails.category",categoryCount:{$sum:1}
-       }},
-       {$sort:{categoryCount:-1}},
-       {$limit:10},
-       {$lookup:
-        {from:"categories",
-          localField:"_id",
-          foreignField:"_id",
-          as:"categoryDetails"
-
-        }
-       },
-       {$unwind:"$categoryDetails"},
-       {$project:{
-        _id:0,
-        category:"$_id",
-        name:"$categoryDetails.name",
-        categoryCount:1
-       }}
-    ]
-   )
-
-   console.log('topcategories',topCategories);
-   
-    return res.render('dashboard', {
+    return res.render("dashboard", {
       orders: salesData,
       userCount,
       order,
       pendingOrders,
-      products:topOrders,
-      category:topCategories,
+      products: topOrders,
+      category: topCategories,
       totalPage,
       currentPage: page,
-      
     });
   } catch (error) {
     console.log("Admin dashboard not found");
@@ -137,11 +138,10 @@ const loadDashboard = async (req, res) => {
   }
 };
 
-
 const loadLogin = async (req, res) => {
   try {
-    if(req.session.isLogged){
-      return res.redirect('/admin/dashboard')
+    if (req.session.isLogged) {
+      return res.redirect("/admin/dashboard");
     }
     return res.render("adminLogin", { msg: req.flash("err") });
     // return res.send("helo world")
@@ -153,7 +153,7 @@ const loadLogin = async (req, res) => {
 
 const adminLogin = async (req, res) => {
   const { email, password } = req.body;
-  console.log(email);
+
   try {
     const admin = await admins.findOne({ email: email, password: password });
 
@@ -170,16 +170,13 @@ const adminLogin = async (req, res) => {
   }
 };
 
-
 const adminLogout = async (req, res) => {
   try {
-   
-  if(req.session.admin){
-  delete req.session.admin
-  delete req.session.isLogged
-  }
-  res.redirect('/admin')
-  
+    if (req.session.admin) {
+      delete req.session.admin;
+      delete req.session.isLogged;
+    }
+    res.redirect("/admin");
   } catch (error) {
     console.log("admin logout error");
     res.status(500).send("server error");
@@ -188,32 +185,28 @@ const adminLogout = async (req, res) => {
 
 const salesReport = async (req, res) => {
   try {
-    const {startDatee, endDatee } = req.query;
-    console.log('start date and end date is here',startDatee,endDatee)
+    const { startDatee, endDatee } = req.query;
 
-    if (!startDatee && endDatee ) {
+    if (!startDatee && endDatee) {
       return res.status(400).json({ error: "Date is required" });
     }
 
     const startDate = new Date(startDatee);
-   const endDate = new Date(endDatee);
+    const endDate = new Date(endDatee);
     endDate.setHours(23, 59, 59, 999);
 
-    console.log("Start Date:", startDate.toISOString());
-    console.log("End Date:", endDate.toISOString());
-
-    
     const userCount = await User.countDocuments();
-    console.log("User Count:", userCount);
-
 
     const pendingOrderCount = await Order.countDocuments({
       status: "pending",
-      createdOn: { $gte: startDate, $lte: endDate }
+      createdOn: { $gte: startDate, $lte: endDate },
     });
-    console.log("Pending Order Count:", pendingOrderCount);
 
-    const order = await Order.find({createdOn: { $gte: startDate, $lte: endDate }}).sort({finalAmount:-1}).limit(10)
+    const order = await Order.find({
+      createdOn: { $gte: startDate, $lte: endDate },
+    })
+      .sort({ finalAmount: -1 })
+      .limit(10);
     const salesData = await Order.aggregate([
       { $match: { createdOn: { $gte: startDate, $lte: endDate } } },
       { $unwind: "$orderedItems" },
@@ -222,16 +215,13 @@ const salesReport = async (req, res) => {
           _id: null,
           totalAmount: { $sum: "$finalAmount" },
           totalOrder: { $sum: 1 },
-          totalCouponDiscount: { $sum:'$couponDiscount'},
+          totalCouponDiscount: { $sum: "$couponDiscount" },
           totalDiscountPrice: { $sum: "$orderedItems.productDiscount" },
-          itemSold: { $sum: 1 } 
+          itemSold: { $sum: 1 },
         },
       },
     ]);
 
-    console.log("Sales Data:", salesData);
-
-   
     const salesReportData = salesData.length
       ? salesData[0]
       : {
@@ -246,11 +236,10 @@ const salesReport = async (req, res) => {
       ...salesReportData,
       userCount,
       pendingOrderCount,
-      order
+      order,
     };
 
     res.json(report);
-
   } catch (error) {
     console.error("Sales report error:", error);
     res.status(500).json({ error: "Server error", details: error.message });
@@ -259,49 +248,79 @@ const salesReport = async (req, res) => {
 
 const downloadSalesData = async (req, res) => {
   try {
-    const { startDatee,endDatee,salesData} = req.body;
-console.log('start date and end date is here',startDatee,endDatee);
-console.log('sales data when downloading',salesData)
+    const { startDatee, endDatee, salesData } = req.body;
 
     const startDate = new Date(startDatee);
     const endDate = new Date(endDatee);
     endDate.setHours(23, 59, 59, 999);
 
-    const orders = await Order.find({ createdOn: { $gte: startDate, $lte: endDate }, status:'Delivered'}).populate('orderedItems')
+    const orders = await Order.find({
+      createdOn: { $gte: startDate, $lte: endDate },
+      status: "Delivered",
+    }).populate("orderedItems");
 
     if (!orders.length) {
-      return res.status(404).json({ error: "No sales data found for the selected date" });
+      return res
+        .status(404)
+        .json({ error: "No sales data found for the selected date" });
     }
 
-    const data = orders.map(order => {
-        return {
+    const data = orders.map((order) => {
+      return {
         "Order ID": order._id.toString(),
         "Amount (₹)": order.finalAmount,
         "Items Sold": order.orderedItems.length,
-        "Status": order.status,
-        "Date": new Date(order.createdOn).toLocaleDateString(),
+        Status: order.status,
+        Date: new Date(order.createdOn).toLocaleDateString(),
       };
     });
 
-  
     data.push({});
-    data.push({ "Order ID": "Summary", "Amount (₹)": "", "Items Sold": "", "Status": "" });
-    data.push({ "Order ID": "Total Orders", "Amount (₹)":salesData.totalOrder,"Items Sold": "", "Status": "" });
-    data.push({ "Order ID": "Total Items Sold", "Amount (₹)":salesData.itemSold,"Items Sold": "", "Status": "" });
-    data.push({ "Order ID": "Total Sales", "Amount (₹)": `₹${salesData.totalAmount}`, "Items Sold": "", "Status": "" });
-    data.push({ "Order ID": "Total Coupon Discount", "Amount (₹)": `₹${salesData.totalCouponDiscount}`, "Items Sold": "", "Status": "" });
-    data.push({ "Order ID": "Total Discount", "Amount (₹)": `₹${salesData.totalDiscountPrice}`, "Items Sold": "", "Status": "" });
+    data.push({
+      "Order ID": "Summary",
+      "Amount (₹)": "",
+      "Items Sold": "",
+      Status: "",
+    });
+    data.push({
+      "Order ID": "Total Orders",
+      "Amount (₹)": salesData.totalOrder,
+      "Items Sold": "",
+      Status: "",
+    });
+    data.push({
+      "Order ID": "Total Items Sold",
+      "Amount (₹)": salesData.itemSold,
+      "Items Sold": "",
+      Status: "",
+    });
+    data.push({
+      "Order ID": "Total Sales",
+      "Amount (₹)": `₹${salesData.totalAmount}`,
+      "Items Sold": "",
+      Status: "",
+    });
+    data.push({
+      "Order ID": "Total Coupon Discount",
+      "Amount (₹)": `₹${salesData.totalCouponDiscount}`,
+      "Items Sold": "",
+      Status: "",
+    });
+    data.push({
+      "Order ID": "Total Discount",
+      "Amount (₹)": `₹${salesData.totalDiscountPrice}`,
+      "Items Sold": "",
+      Status: "",
+    });
 
-    
     const ws = XLSX.utils.json_to_sheet(data);
 
-   
     ws["!cols"] = [
       { wch: 20 },
       { wch: 15 },
       { wch: 12 },
       { wch: 15 },
-      { wch: 15 }
+      { wch: 15 },
     ];
 
     const headerRange = XLSX.utils.decode_range(ws["!ref"]);
@@ -322,47 +341,52 @@ console.log('sales data when downloading',salesData)
       if (cell) {
         cell.s = {
           font: { bold: true, color: { rgb: "000000" } },
-          fill: { fgColor: { rgb: "f8f9fa" } }, 
+          fill: { fgColor: { rgb: "f8f9fa" } },
           alignment: { horizontal: "left" },
         };
       }
     }
 
-    
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Aura-Men-Sales Report");
 
-    
     const buffer = XLSX.write(wb, { bookType: "xlsx", type: "buffer" });
 
-    res.setHeader("Content-Disposition", `attachment; filename=sales-report-${startDatee}-${endDatee}.xlsx`);
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=sales-report-${startDatee}-${endDatee}.xlsx`
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
 
     res.end(buffer);
-
   } catch (error) {
     console.error("Error generating sales report:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-
 const downloadPDF = async (req, res) => {
   try {
     const { startDatee, endDatee, salesData } = req.body;
-    console.log("PDF Download Date:", startDatee, endDatee);
 
     const startDate = new Date(startDatee);
     const endDate = new Date(endDatee);
     endDate.setHours(23, 59, 59, 999);
 
-    const orders = await Order.find({ createdOn: { $gte: startDate, $lte: endDate } ,status:'Delivered'});
+    const orders = await Order.find({
+      createdOn: { $gte: startDate, $lte: endDate },
+      status: "Delivered",
+    });
 
     if (!orders.length) {
-      return res.status(404).json({ error: "No sales data found for the selected date" });
+      return res
+        .status(404)
+        .json({ error: "No sales data found for the selected date" });
     }
 
-    
     const totalOrders = salesData?.totalOrder || 0;
     const totalAmount = salesData?.totalAmount || 0;
     const totalDiscount = salesData?.totalDiscountPrice || 0;
@@ -377,22 +401,32 @@ const downloadPDF = async (req, res) => {
     const doc = new PDFDocument({ margin: 40 });
     doc.pipe(res);
 
-    doc.fontSize(18).fillColor("#000").text("Aura-Men Sales Report", { align: "center", underline: true });
+    doc
+      .fontSize(18)
+      .fillColor("#000")
+      .text("Aura-Men Sales Report", { align: "center", underline: true });
     doc.moveDown(1);
 
     doc.fontSize(12);
-    doc.text(`Date: ${new Date(startDatee).toLocaleDateString()}, ${new Date(endDatee).toDateString()}`);
+    doc.text(
+      `Date: ${new Date(startDatee).toLocaleDateString()}, ${new Date(
+        endDatee
+      ).toDateString()}`
+    );
     doc.text(`Total Orders: ${totalOrders}`);
     doc.text(`Total Sales: ${totalAmount}`);
     doc.text(`Total Discount: ${totalDiscount}`);
     doc.text(`Coupon Discount: ${couponDiscount}`);
     doc.moveDown(1);
 
-    
     const startX = 50;
     let startY = doc.y;
 
-    doc.fontSize(10).fillColor("#fff").rect(startX, startY, 500, 20).fill("#007bff");
+    doc
+      .fontSize(10)
+      .fillColor("#fff")
+      .rect(startX, startY, 500, 20)
+      .fill("#007bff");
     doc.fillColor("#fff");
     doc.text("Order ID", startX + 10, startY + 5);
     doc.text("Date", startX + 150, startY + 5);
@@ -402,7 +436,7 @@ const downloadPDF = async (req, res) => {
     doc.moveDown(1);
 
     let rowColor = "#f2f2f2";
-    
+
     orders.forEach((order, index) => {
       startY = doc.y;
 
@@ -410,21 +444,37 @@ const downloadPDF = async (req, res) => {
         doc.rect(startX, startY, 500, 20).fill(rowColor);
       }
 
-      const productDiscount = order.orderedItems?.reduce((acc, item) => acc + (item.productDiscount || 0), 0).toFixed(2);
-     
+      const productDiscount = order.orderedItems
+        ?.reduce((acc, item) => acc + (item.productDiscount || 0), 0)
+        .toFixed(2);
 
       doc.fillColor("#000").fontSize(10);
-      doc.text(order._id.toString().substring(0, 30) + "", startX + 10, startY + 5);
-      doc.text(new Date(order.createdOn).toLocaleDateString(), startX + 150, startY + 5);
+      doc.text(
+        order._id.toString().substring(0, 30) + "",
+        startX + 10,
+        startY + 5
+      );
+      doc.text(
+        new Date(order.createdOn).toLocaleDateString(),
+        startX + 150,
+        startY + 5
+      );
       doc.text(order.finalAmount.toFixed(2), startX + 220, startY + 5);
-      doc.text( productDiscount, startX + 320, startY + 5);
-      doc.text(order.couponDiscount ? order.couponDiscount.toFixed(2) : "0", startX + 420, startY + 5);
-      
+      doc.text(productDiscount, startX + 320, startY + 5);
+      doc.text(
+        order.couponDiscount ? order.couponDiscount.toFixed(2) : "0",
+        startX + 420,
+        startY + 5
+      );
+
       doc.moveDown(1);
     });
 
     doc.moveDown(1);
-    doc.fontSize(8).fillColor("#008000").text("Generated by Aura-Men", { align: "right" });
+    doc
+      .fontSize(8)
+      .fillColor("#008000")
+      .text("Generated by Aura-Men", { align: "right" });
 
     doc.end();
   } catch (error) {
@@ -433,62 +483,63 @@ const downloadPDF = async (req, res) => {
   }
 };
 
-
-const Chart = async(req, res) => {
+const Chart = async (req, res) => {
   try {
-    let { filter } = req.query; 
-    console.log('filter:', filter);
-    
-    let matchStage = {}; 
+    let { filter } = req.query;
 
-   
+    let matchStage = {};
+
     if (!filter) filter = "monthly";
 
     if (filter === "yearly") {
-        matchStage = { createdOn: { $gte: new Date(new Date().getFullYear(), 0, 1) } };
+      matchStage = {
+        createdOn: { $gte: new Date(new Date().getFullYear(), 0, 1) },
+      };
     } else if (filter === "monthly") {
-        let startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-        matchStage = { createdOn: { $gte: startOfMonth } };
+      let startOfMonth = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        1
+      );
+      matchStage = { createdOn: { $gte: startOfMonth } };
     } else if (filter === "weekly") {
-        let startOfWeek = new Date();
-        startOfWeek.setDate(startOfWeek.getDate() - 7);
-        matchStage = { createdOn: { $gte: startOfWeek } };
+      let startOfWeek = new Date();
+      startOfWeek.setDate(startOfWeek.getDate() - 7);
+      matchStage = { createdOn: { $gte: startOfWeek } };
     } else {
-       
-        matchStage = {};
+      matchStage = {};
     }
-    
-  
-    console.log('Match stage:', matchStage);
-    
+
     const salesData = await Order.aggregate([
-        { $match: matchStage }, 
-        {
-            $group: {
-                _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdOn" } }, 
-                totalSales: { $sum: "$finalAmount" }
-            }
+      { $match: matchStage },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdOn" } },
+          totalSales: { $sum: "$finalAmount" },
         },
-        { $sort: { _id: 1 } } 
+      },
+      { $sort: { _id: 1 } },
     ]);
 
-    console.log('Sales data:', salesData);
-    
-
     if (!salesData || salesData.length === 0) {
-        return res.json({ labels: [], values: [], message: "No data found for the selected period" });
+      return res.json({
+        labels: [],
+        values: [],
+        message: "No data found for the selected period",
+      });
     }
 
     const labels = salesData.map((data) => data._id);
     const values = salesData.map((data) => data.totalSales);
-console.log('labels ',labels)
-console.log('values',values)
+
     res.json({ labels, values });
   } catch (error) {
     console.error("Chart aggregation error:", error);
-    res.status(500).json({ error: "Internal Server Error", message: error.message });
+    res
+      .status(500)
+      .json({ error: "Internal Server Error", message: error.message });
   }
-}
+};
 
 module.exports = {
   loadLogin,
@@ -498,7 +549,5 @@ module.exports = {
   salesReport,
   downloadSalesData,
   downloadPDF,
-  Chart
-  
-  
+  Chart,
 };
