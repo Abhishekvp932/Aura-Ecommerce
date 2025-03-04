@@ -103,6 +103,15 @@ const placeOrder = async (req, res) => {
       return res.json({ success: false, message: "Your cart is empty" });
     }
 
+
+    const blockedProduct = cart.products.find((item) => item.productId.isBlocked);
+    if (blockedProduct) {
+      return res.json({
+        success: false,
+        message: `The product "${blockedProduct.productId.productName}" is unavailable and cannot be ordered.`,
+      });
+    }
+
     let totalProducts = cart.products.length || 1;
     let discountAmount = req.session.discount || 0;
     let perProductDiscount = !isNaN(discountAmount / totalProducts)
