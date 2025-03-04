@@ -338,7 +338,7 @@ const pageNotFound = async(req,res)=>{
 const loadHome = async (req,res)=>{
     try {
       const userLoged = req.session.userLoged
-const product = await Product.find().limit(8)
+const product = await Product.find().sort({createdAt:-1}).limit(8)
 
 const categories = await Category.find({ isListed: true });
     const categoryWithIds = categories.map((category) => ({
