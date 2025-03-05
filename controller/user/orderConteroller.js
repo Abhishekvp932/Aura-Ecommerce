@@ -506,8 +506,8 @@ const downloadInvoice = async (req, res) => {
       .fillColor("black")
       .text("Product", 55, tableTop + 5)
       .text("Status", 180, tableTop + 5)
-      .text("Quantity", 280, tableTop + 5)
-      .text("Size", 380, tableTop + 5)
+      .text("size", 280, tableTop + 5)
+      .text("Quantity", 380, tableTop + 5)
       .text("Amount", 450, tableTop + 5);
 
     doc.moveDown(2);

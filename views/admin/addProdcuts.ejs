@@ -285,16 +285,16 @@
                     function saveCroppedImage(index) {
     if (croppers[index]) {
         croppers[index].getCroppedCanvas().toBlob((blob) => {
-            // Create a new File object with a custom name
+           
             const croppedFile = new File([blob], `resized-${Date.now()}.png`, { type: blob.type });
-            // Create a container for the thumbnail and remove icon
+        
             const container = document.createElement('div');
             container.style.position = 'relative';
             container.style.display = 'inline-block';
             container.style.marginRight = '10px';
             container.style.marginBottom = '10px';
 
-            // Create and style the thumbnail
+            
             const thumbnail = document.createElement('img');
             thumbnail.src = URL.createObjectURL(croppedFile);
             thumbnail.className = 'thumbnail';
@@ -302,7 +302,7 @@
             thumbnail.style.height = '100px';
             thumbnail.style.objectFit = 'cover';
 
-            // Create and style the remove icon
+           
             const removeIcon = document.createElement('div');
             removeIcon.innerHTML = '×';
             removeIcon.style.cssText = `
@@ -322,25 +322,22 @@
                 font-weight: bold;
             `;
 
-            // Add click handler for the remove icon
             removeIcon.onclick = function () {
                 container.remove();
             };
 
-            // Assemble the elements
             container.appendChild(thumbnail);
             container.appendChild(removeIcon);
             document.getElementById('addedImagesContainer').appendChild(container);
 
-            // Replace the file input with the cropped image file
             const input = document.querySelector(`input[type="file"][onchange*="${index}"]`);
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(croppedFile);
             input.files = dataTransfer.files;
 
-            // Hide the cropper after saving
+            
             document.querySelector(`#cropperImg${index}`).parentElement.style.display = 'none';
-        }, 'image/png'); // You can adjust the format as needed
+        }, 'image/png'); 
     }
 }
                 
