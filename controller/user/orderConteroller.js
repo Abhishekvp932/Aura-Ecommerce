@@ -16,6 +16,7 @@ const crypto = require("crypto");
 const path = require("path");
 const fs = require("fs");
 const PDFDocument = require("pdfkit");
+const Coupon = require("../../models/couponSchema");
 
 const loadOrdersPage = async (req, res) => {
   try {
@@ -232,10 +233,12 @@ const returnRequest = async (req, res) => {
 
 const verifyPayment = async (req, res) => {
   try {
+    console.log("order request is coming...");
+
     const {
-      payment_id,
-      order_id,
-      signature,
+      razorpay_payment_id,
+      razorpay_order_id,
+      razorpay_signature,
       orderedItems,
       paymentMethod,
       totalPrice,
@@ -245,18 +248,19 @@ const verifyPayment = async (req, res) => {
       userId,
     } = req.body;
 
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+
     const generatedSignature = crypto
-      .createHmac("sha256", "QucZPITL3a19mTmRO5bvA62u")
-      .update(order_id + "|" + payment_id)
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
       .digest("hex");
 
-    if (generatedSignature !== signature) {
-      return res.json({
+    if (generatedSignature !== razorpay_signature) {
+      return res.status(400).json({
         success: false,
         message: "Payment verification failed",
       });
     }
-
     const newOrder = await Order.create({
       userId,
       orderedItems,
@@ -268,8 +272,18 @@ const verifyPayment = async (req, res) => {
       invoiceDate: new Date(),
       status: "Pending",
       couponApplied: couponDiscount > 0,
-      razorpayOrderId: order_id,
+      razorpayOrderId: razorpay_order_id,
+      razorpayPaymentId: razorpay_payment_id,
     });
+
+    const couponCode = req.session.couponCode;
+
+    if (couponDiscount > 0 && couponCode) {
+      await Coupon.findOneAndUpdate(
+        { code: couponCode },
+        { $addToSet: { couponUsers: userId } }
+      );
+    }
 
     for (const item of orderedItems) {
       const product = await Products.findById(item.product);
@@ -288,19 +302,24 @@ const verifyPayment = async (req, res) => {
       product.quantity -= item.quantity;
       await product.save();
     }
-    res.json({
+
+    await Cart.deleteMany({ userId });
+
+    return res.json({
       success: true,
-      paymentId: payment_id,
+      paymentId: razorpay_payment_id,
       redirectUrl: "/userOrders",
     });
-    await Cart.deleteMany();
   } catch (error) {
     console.error("Error verifying payment:", error);
-    return res.json({ success: false, message: "Server error occurred" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error occurred" });
   }
 };
 
 const placeFieldOrders = async (req, res) => {
+  // console.log('place filed order request is comming ...');
   try {
     const {
       orderId,
@@ -336,9 +355,14 @@ const placeFieldOrders = async (req, res) => {
   }
 };
 
+// const razorpay = new Razorpay({
+//   key_id: "rzp_test_UJHrF4ZCERjDBB",
+//   key_secret: "QucZPITL3a19mTmRO5bvA62u",
+// });
+
 const razorpay = new Razorpay({
-  key_id: "rzp_test_UJHrF4ZCERjDBB",
-  key_secret: "QucZPITL3a19mTmRO5bvA62u",
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 const createRazoPayOrder = async (amount) => {

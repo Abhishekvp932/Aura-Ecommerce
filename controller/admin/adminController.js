@@ -133,7 +133,7 @@ const loadDashboard = async (req, res) => {
       currentPage: page,
     });
   } catch (error) {
-    console.log("Admin dashboard not found");
+    
     res.status(500).send("Server error");
   }
 };
@@ -146,7 +146,7 @@ const loadLogin = async (req, res) => {
     return res.render("adminLogin", { msg: req.flash("err") });
     // return res.send("helo world")
   } catch (error) {
-    console.log("page not found");
+   
     res.status(500).send("server error");
   }
 };

@@ -49,13 +49,19 @@ const loadPaymentSuccess = async (req, res) => {
   }
 };
 
+// const razorpay = new Razorpay({
+//   key_id: "rzp_test_UJHrF4ZCERjDBB",
+//   key_secret: "QucZPITL3a19mTmRO5bvA62u",
+// });
+
 const razorpay = new Razorpay({
-  key_id: "rzp_test_UJHrF4ZCERjDBB",
-  key_secret: "QucZPITL3a19mTmRO5bvA62u",
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 const createRazoPayOrder = async (amount, receipt) => {
   try {
+    console.log("IS SERVER:", typeof window === "undefined");
     return razorpay.orders.create({
       amount: amount * 100,
       currency: "INR",
@@ -73,22 +79,24 @@ const placeOrder = async (req, res) => {
     const { paymentMethod, address, couponCode } = req.body;
 
     const email = req.session.userEmail;
+
     const user = await User.findOne({ email });
 
     if (!user) {
       return res.json({ success: false, message: "User not found" });
     }
-
+   
     if (!paymentMethod) {
       return res.json({
         success: false,
         message: "Please select a payment method",
       });
     }
+
     if (!address) {
       return res.json({ success: false, message: "please select a Address" });
     }
-
+ 
     const cart = await Cart.findOne({ userId: user._id }).populate(
       "products.productId"
     );
@@ -125,7 +133,7 @@ const placeOrder = async (req, res) => {
         (product.productDiscount + perProductDiscount).toFixed(2)
       ),
     }));
-
+ 
     const totalPrice = orderedItems.reduce(
       (sum, item) => sum + item.totalPrice,
       0
@@ -137,8 +145,9 @@ const placeOrder = async (req, res) => {
     let razorpayOrder = null;
 
     if (paymentMethod === "onlinePayment") {
+      console.log("razorpay order", finalAmount, orderId);
       razorpayOrder = await createRazoPayOrder(finalAmount, orderId);
-
+   
       return res.json({
         success: true,
         orderId,
@@ -165,6 +174,14 @@ const placeOrder = async (req, res) => {
       }
       wallet.balance -= finalAmount;
       await wallet.save();
+      const couponCode = req.session.couponCode;
+
+    if (couponDiscount > 0 && couponCode) {
+      await Coupon.findOneAndUpdate(
+        { code: couponCode },
+        { $addToSet: { couponUsers: user?._id } }
+      );
+    }
       const newOrder = await Order.create({
         userId: user._id,
         orderedItems,
@@ -235,7 +252,7 @@ const placeOrder = async (req, res) => {
       product.quantity -= item.quantity;
       await product.save();
     }
-
+    console.log("9");
     await Cart.deleteMany({ userId: user._id });
 
     req.session.discount = null;
@@ -246,7 +263,10 @@ const placeOrder = async (req, res) => {
       redirectUrl: "/userOrders",
     });
   } catch (error) {
-    console.error("Error while placing order:", error);
+    console.log("STATUS CODE:", error.statusCode);
+    console.log("ERROR OBJECT:", error.error);
+    console.log("FULL ERROR:", error);
+    throw error;
     return res.json({ success: false, message: "Server error occurred" });
   }
 };

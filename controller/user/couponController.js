@@ -33,7 +33,7 @@ const couponApply = async (req, res) => {
     let newTotal = Math.max(totalAmount - discount, 0);
     req.session.discount = discount;
     const cart = await Cart.findOne({ userId: user._id }).populate("products");
-
+    
     if (coupon.couponUsers.includes(user._id)) {
       return res.json({
         success: false,
@@ -53,6 +53,10 @@ const couponApply = async (req, res) => {
         message: `If the user makes a purchase of at least ${coupon.minPrice}, then they can apply this coupon.`,
       });
     }
+
+    req.session.couponCode = a;
+
+    console.log('coupon code is ',req.session.couponCode);
     return res.json({
       success: true,
       newTotal: newTotal.toFixed(2),

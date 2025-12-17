@@ -938,7 +938,7 @@ document.getElementById("pay-btn").addEventListener("click", async function (e) 
                 });
 
                 const order = await response.json();
-
+                 console.log('order is ',order);
                 if(!order.success){
                   swal.fire({
                     title:'Error',
@@ -984,114 +984,55 @@ document.getElementById("pay-btn").addEventListener("click", async function (e) 
          userId,
               } = order
 
-                const options = {                  
-                    key:'rzp_test_UJHrF4ZCERjDBB',
-                    amount:order.amount,
-                    currency:"INR",
-                    name:"Aura-Mens",
-                    description:"Test Payment",
-                    order_id:order.razorpayOrderId,
-                    handler:async function (response) {
+               const options = {
+  key: key,
+  amount: order.amount,
+  currency: "INR",
+  name: "Aura-Mens",
+  description: "Order Payment",
+  order_id: order.razorpayOrderId,
 
-                      console.log('2',response)
-                      
-                        const verifyResponse = await fetch("/verify-payment", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              payment_id:response.razorpay_payment_id,
-                                order_id:response.razorpay_order_id,
-                                signature:response.razorpay_signature,
-                                orderId,
-                                orderedItems,
-                                paymentMethod,
-                                totalPrice,
-                                couponDiscount,
-                                finalAmount,
-                                address,
-                                userId
-                            })
-                        });
-                        
-                        const verifyData = await verifyResponse.json();
-                        console.log('verify data',verifyData)
-                        if (verifyData.success) {
-                           swal.fire({
-                            title:'success',
-                            text:"Payment successfuly completed",
-                            icon:'success'
-                           })
-                            window.location.href = verifyData.redirectUrl || "/userOrders";
-                        } else {
-                            swal.fire({
-                              title:"error",
-                              text:"payment error",
-                              icon:'error'
-                            })
-                        }
-                    },
-                    prefill: {
-                        name: "Aura-Men",
-                        email: "aura-men@fashion.com",
-                        contact: "9078563467"
-                    },
-                    theme: { color: "#3399cc" },
-                    modal:{
-                      ondismiss:function(){
-                        Swal.fire({
-                        title: "Payment Failed",
-                        text: "Your payment was not completed. What would you like to do?",
-                        icon: "warning",
-                        showCancelButton: true,
-                        showDenyButton: true,
-                        confirmButtonText: "Retry",
-                        denyButtonText: "Place Order",
-                        cancelButtonText: "Cancel",
-                    }).then(async(result)=>{
-                      if(result.isConfirmed){
-                        rzp.open()
-                      }else if(result.isDenied){
-                   const data = await fetch('/placeFieldOrders',{
-                      method:'POST', 
-                        headers: {
-                       "Content-Type": "application/json",
-                       },
-                      body: JSON.stringify({
-                        orderId,
-                        orderedItems,
-                         paymentMethod,
-                        totalPrice,
-                       couponDiscount,
-                        finalAmount,
-                        address,
-                        userId
-                    }) 
-                     })
-                     const result = await data.json()
-                     console.log('result is result',result);
-                     if(result.success){
-                      swal.fire({
-                        title:'Success',
-                        text:result.message,
-                        icon:'success'
-                      })
-                      window.location.href = result.redirectUrl
-                     }else{
-                      swal.fire({
-                        title:'error',
-                        text:'field order placing error',
-                        icon:'error'
-                      })
-                     }
-                      }
-                    })
-                      }
-                    }
-                  }
+  handler: async function (response) {
+    console.log("PAYMENT SUCCESS:", response);
 
-                  console.log('options is',options);
-                  const rzp = new Razorpay(options);
-                  rzp.open();
+    const verifyResponse = await fetch("/verify-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_signature: response.razorpay_signature,
+        orderId,
+        orderedItems,
+        paymentMethod,
+        totalPrice,
+        couponDiscount,
+        finalAmount,
+        address,
+        userId
+      })
+    });
+
+    const verifyData = await verifyResponse.json();
+
+    if (verifyData.success) {
+      Swal.fire("Success", "Payment completed", "success");
+      window.location.href = verifyData.redirectUrl || "/userOrders";
+    } else {
+      Swal.fire("Error", "Payment verification failed", "error");
+    }
+  },
+
+  modal: {
+    ondismiss: function () {
+      console.log("Popup closed by user");
+    }
+  }
+};
+
+const rzp = new Razorpay(options);
+rzp.open();
+
                 }
 
                 } catch (error) {
